@@ -1,0 +1,26 @@
+version: '3.8'
+
+x-environments: &environments
+  SECRET_KEY: ${SECRET_KEY}
+  SENTRY_DSN_URL: ${SENTRY_DSN_URL}
+  ENVIRONMENT: ${ENVIRONMENT}
+
+networks:
+  backend:
+    driver: bridge
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: ./deploy/backend/Dockerfile
+    image: ${CI_REGISTRY_IMAGE}/fastapi:${CI_COMMIT_REF_SLUG}
+    networks:
+      - backend
+    env_file:
+      - .env
+    environment:
+      <<: *environments
+    ports:
+      - "0.0.0.0:80:8000"
+    command: ["make", "run_prod"]

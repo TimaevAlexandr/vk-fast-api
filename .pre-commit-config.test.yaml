@@ -1,0 +1,28 @@
+repos:
+  - repo: https://github.com/ambv/black
+    rev: 21.12b0
+    hooks:
+      - id: black
+        exclude: ^(.+)?migrations/
+        args: ["--diff", "--check", "-l", "79"]
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.10.1
+    hooks:
+      - id: isort
+        exclude: ^(.+)?migrations/
+        args: ["--diff", "--check-only", "--settings-path", "src/configs/setup.cfg" ]
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 5.0.4
+    hooks:
+      - id: flake8
+        exclude: ^(.+)?migrations/
+        args: ["--config", "src/configs/setup.cfg"]
+
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.1
+    hooks:
+      - id: bandit
+        exclude: ^(.+)?migrations/
+        args: ["--config", "src/configs/bandit.yaml"]
