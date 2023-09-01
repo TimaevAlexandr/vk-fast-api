@@ -1,6 +1,5 @@
 import os
 
-import uvicorn
 from consts import ADMINS, GROUP_ID_COEFFICIENT
 from db_interface import (
     add_group,
@@ -9,21 +8,20 @@ from db_interface import (
     ids_by_course,
     init_database,
 )
-from dotenv import load_dotenv
+
 from fastapi import FastAPI, Request
-from loguru import logger
+import logging
 from vkbottle.bot import Bot, Message
+from vkbottle import VKAPIError
 
 app = FastAPI()
-
-load_dotenv()
 
 bot = Bot(os.getenv("VKTOKEN", "NoToken"))
 
 init_database()
 
 
-async def broadcast(courses: str, text=None, attachment=None):
+async def broadcast(courses: str, text: str = None, attachment: list = None):
     for course in courses:
         for group in ids_by_course(int(course)):
             try:
@@ -33,8 +31,8 @@ async def broadcast(courses: str, text=None, attachment=None):
                     attachment=attachment,
                     random_id=0,
                 )
-            except Exception as exception:
-                logger.warning(exception)
+            except VKAPIError[7] as exception:
+                logging.warning(exception)
                 delete_group(group)
 
 
@@ -133,9 +131,6 @@ async def user_help(message: Message):
 @app.post("/callback")
 async def callback(request: Request):
     data = await request.json()
-    print(data)
     await bot.process_event([data])
+    return 'ok'
 
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=80)
