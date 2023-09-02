@@ -47,10 +47,14 @@ async def sharing_text(message: Message, courses: str, text: str):
 async def share_publication(message: Message, courses: str):
     if message.from_id not in ADMINS:
         return
-    attachment = message.get_wall_attachment()[0]
-    await broadcast(
-        courses, attachment=[f"wall{attachment.owner_id}_{attachment.id}"]
-    )
+    attachment = message.get_wall_attachment()
+    if len(attachment) != 0:
+        attachment = attachment[0]
+        await broadcast(
+            courses, attachment=[f"wall{attachment.owner_id}_{attachment.id}"]
+        )
+    else:
+        message.forward('Ошибка пост не был прикреплен!')
 
 
 @bot.on.chat_message(text="Рассылка: <courses>, Сообщение")
@@ -133,4 +137,3 @@ async def callback(request: Request):
     data = await request.json()
     await bot.process_event([data])
     return 'ok'
-

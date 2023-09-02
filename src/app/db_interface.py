@@ -29,13 +29,14 @@ def init_database():
 
 
 def ids_by_course(course: int):
-    return zip(
-        *conn.execute(
+    return [
+        id_[0] for id_ in
+        conn.execute(
             select(student_groups.c.id).where(
                 student_groups.c.course == course
             )
         ).all()
-    )[0]
+    ]
 
 
 def delete_group(group_id: int):
@@ -44,7 +45,9 @@ def delete_group(group_id: int):
 
 
 def groups_ids():
-    return zip(*conn.execute(select(student_groups.c.id)).all())[0]
+    ids = conn.execute(select(student_groups.c.id)).all()
+    if len(ids) != 0:
+        return [id_[0] for id_ in ids]
 
 
 def add_group(group_id: int, course: int):
