@@ -11,8 +11,7 @@ from sqlalchemy import (
     select,
 )
 
-engine = create_engine(f"sqlite:///{DB_PATH}", echo=True, pool_recycle=60)
-conn = engine.connect()
+engine = create_engine(f"sqlite:///{DB_PATH}", echo=True)
 metadata = MetaData()
 
 student_groups = Table(
@@ -27,39 +26,42 @@ def init_database():
     if not inspect(engine).has_table("student_groups"):
         student_groups.create(engine)
 
-def check_connection():
-
 
 def ids_by_course(course: int):
-    return [
-        id_[0] for id_ in
-        conn.execute(
+    with engine.connect() as conn:
+        ids = conn.execute(
             select(student_groups.c.id).where(
                 student_groups.c.course == course
             )
         ).all()
-    ]
+        if len(ids) != 0:
+            return [id_[0] for id_ in ids]
+        return ids
 
 
 def delete_group(group_id: int):
-    conn.execute(delete(student_groups).where(student_groups.c.id == group_id))
-    conn.commit()
+    with engine.connect() as conn:
+        conn.execute(delete(student_groups).where(student_groups.c.id == group_id))
+        conn.commit()
 
 
 def groups_ids():
-    ids = conn.execute(select(student_groups.c.id)).all()
-    if len(ids) != 0:
-        return [id_[0] for id_ in ids]
+    with engine.connect() as conn:
+        ids = conn.execute(select(student_groups.c.id)).all()
+        if len(ids) != 0:
+            return [id_[0] for id_ in ids]
+        return ids
 
 
 def add_group(group_id: int, course: int):
-    conn.execute(
-        insert(student_groups),
-        [
-            {
-                "id": group_id,
-                "course": course,
-            }
-        ],
-    )
-    conn.commit()
+    with engine.connect() as conn:
+        conn.execute(
+            insert(student_groups),
+            [
+                {
+                    "id": group_id,
+                    "course": course,
+                }
+            ],
+        )
+        conn.commit()
