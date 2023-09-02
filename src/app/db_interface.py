@@ -11,7 +11,7 @@ from sqlalchemy import (
     select,
 )
 
-engine = create_engine(f"sqlite:///{DB_PATH}", echo=True)
+engine = create_engine(f"sqlite:///{DB_PATH}", echo=True, pool_recycle=60)
 conn = engine.connect()
 metadata = MetaData()
 
@@ -26,6 +26,8 @@ student_groups = Table(
 def init_database():
     if not inspect(engine).has_table("student_groups"):
         student_groups.create(engine)
+
+def check_connection():
 
 
 def ids_by_course(course: int):
