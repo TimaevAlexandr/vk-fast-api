@@ -1,0 +1,8 @@
+variables:
+  APP_NAME: starostat
+  PYTHON_TESTS: "true"
+include:
+  - project: 'Pipelines/base-ci'
+    ref: master
+    file: 'base.yml'
+
