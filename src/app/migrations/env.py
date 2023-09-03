@@ -4,8 +4,8 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from app.db_interface import metadata
-from app.consts import DB_PATH
+from db_interface import metadata
+from consts import DB_PATH
 
 sys.path = ["", ".."] + sys.path[1:]
 
