@@ -9,6 +9,16 @@ run_prod:
 	uvicorn app.vkbot:app --host 0.0.0.0 --port 8000 --log-level warning
 
 ###
+# Migrations
+###
+
+migrations:
+	alembic revision --autogenerate
+
+upgrade:
+	alembic upgrade head
+
+###
 # Linter Tests
 ###
 
