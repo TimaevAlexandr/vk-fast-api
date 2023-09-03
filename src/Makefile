@@ -27,12 +27,12 @@ mypy:
 isort:
 	poetry run isort .
 isort_ci:
-	poetry run isort --diff
+	poetry run isort --diff .
 
 black:
 	poetry run black .
 black_ci:
-	poetry run black --diff
+	poetry run black --diff .
 
 ltest: black isort flake bandit radon
 ltest_ci: black_ci isort_ci flake bandit radon
