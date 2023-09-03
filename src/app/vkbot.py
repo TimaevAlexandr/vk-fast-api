@@ -21,7 +21,7 @@ bot = Bot(os.getenv("VKTOKEN", "NoToken"))
 init_database()
 
 
-async def broadcast(courses: str, text: str = None, attachment: list = None):
+async def broadcast(courses: str, text: str = None, attachment: list = None) -> None:
     for course in courses:
         for group in ids_by_course(int(course)):
             try:
@@ -37,14 +37,14 @@ async def broadcast(courses: str, text: str = None, attachment: list = None):
 
 
 @bot.on.chat_message(text="Рассылка: <courses>, Текст <text>")
-async def sharing_text(message: Message, courses: str, text: str):
+async def sharing_text(message: Message, courses: str, text: str) -> None:
     if message.from_id not in ADMINS:
         return
     await broadcast(courses, text=text)
 
 
 @bot.on.chat_message(text="Рассылка: <courses>, Пост")
-async def share_publication(message: Message, courses: str):
+async def share_publication(message: Message, courses: str) -> None:
     if message.from_id not in ADMINS:
         return
     attachment = message.get_wall_attachment()
@@ -54,11 +54,11 @@ async def share_publication(message: Message, courses: str):
             courses, attachment=[f"wall{attachment.owner_id}_{attachment.id}"]
         )
     else:
-        message.forward('Ошибка пост не был прикреплен!')
+        message.forward("Ошибка пост не был прикреплен!")
 
 
 @bot.on.chat_message(text="Рассылка: <courses>, Сообщение")
-async def share_message(message: Message, courses: str):
+async def share_message(message: Message, courses: str) -> None:
     if message.from_id not in ADMINS:
         return
 
@@ -69,7 +69,7 @@ async def share_message(message: Message, courses: str):
 
 
 @bot.on.chat_message(text="Добавить <course>")
-async def test(message: Message, course: str):
+async def test(message: Message, course: str) -> None:
     if course == "admin":
         course = -1
     elif course.isnumeric() and 1 <= int(course) <= 5:
@@ -119,7 +119,7 @@ async def test(message: Message, course: str):
 
 
 @bot.on.chat_message(text="Помощь")
-async def user_help(message: Message):
+async def user_help(message: Message) -> None:
     if message.from_id in ADMINS:
         await message.answer(
             "Команды:\n\n"
@@ -133,7 +133,7 @@ async def user_help(message: Message):
 
 
 @app.post("/callback")
-async def callback(request: Request):
+async def callback(request: Request) -> str:
     data = await request.json()
     await bot.process_event([data])
-    return 'ok'
+    return "ok"
