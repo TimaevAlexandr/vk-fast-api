@@ -41,7 +41,11 @@ def ids_by_course(course: int) -> list[int]:
 
 def delete_group(group_id: int) -> None:
     with engine.connect() as conn:
-        conn.execute(delete(student_groups).where(student_groups.c.id == group_id))
+        conn.execute(
+            delete(student_groups).where(
+                student_groups.c.id == group_id
+            )
+        )
         conn.commit()
 
 

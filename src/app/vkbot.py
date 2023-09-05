@@ -21,7 +21,9 @@ bot = Bot(os.getenv("VKTOKEN", "NoToken"))
 init_database()
 
 
-async def broadcast(courses: str, text: str = None, attachment: list = None) -> None:
+async def broadcast(courses: str,
+                    text: str = None,
+                    attachment: list = None) -> None:
     for course in courses:
         for group in ids_by_course(int(course)):
             try:
