@@ -44,9 +44,7 @@ def ids_by_course(course: int) -> Sequence:
 def delete_group(group_id: int) -> None:
     with engine.connect() as conn:
         conn.execute(
-            delete(student_groups).where(
-                student_groups.c.id == group_id
-            )
+            delete(student_groups).where(student_groups.c.id == group_id)
         )
         conn.commit()
 
