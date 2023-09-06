@@ -1,8 +1,8 @@
 import os
 
 # SYSTEM SETTINGS
-SENTRY_DSN_URL: str = os.getenv("SENTRY_DSN_URL")
-ENVIRONMENT: str = os.getenv("ENVIRONMENT")
+SENTRY_DSN_URL: str = os.getenv("SENTRY_DSN_URL", "")
+ENVIRONMENT: str = os.getenv("ENVIRONMENT", "local")
 
 # APP SETTINGS
 ADMINS: list[int] = list(map(int, os.getenv("BOT_ADMINS", "").split(",")))
