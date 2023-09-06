@@ -17,15 +17,15 @@ engine = create_engine(DB_PATH, echo=True)
 metadata = MetaData()
 
 student_groups = Table(
-    "student_groups",
+    'student_groups',
     metadata,
-    Column("id", Integer, primary_key=True),
-    Column("course", Integer, nullable=False),
+    Column('id', Integer, primary_key=True),
+    Column('course', Integer, nullable=False),
 )
 
 
 def init_database() -> None:
-    if not inspect(engine).has_table("student_groups"):
+    if not inspect(engine).has_table('student_groups'):
         student_groups.create(engine)
 
 
@@ -59,8 +59,8 @@ def add_group(group_id: int, course: int) -> None:
             insert(student_groups),
             [
                 {
-                    "id": group_id,
-                    "course": course,
+                    'id': group_id,
+                    'course': course,
                 }
             ],
         )
