@@ -1,21 +1,13 @@
 import logging
+from functools import wraps
 from typing import Sequence
 
-from sqlalchemy import (
-    Column,
-    Connection,
-    Integer,
-    MetaData,
-    Table,
-    create_engine,
-    delete,
-    insert,
-    inspect,
-    select,
-)
+from sqlalchemy import Column, Connection, Integer, MetaData, Table
+from sqlalchemy.engine import create_engine
 from sqlalchemy.exc import DBAPIError
+from sqlalchemy.sql.expression import delete, insert, select
 
-from consts import DB_PATH
+from settings import DB_PATH
 
 engine = create_engine(DB_PATH, echo=True)
 metadata = MetaData()
@@ -29,11 +21,10 @@ student_groups = Table(
 
 
 def db_connect(func):
+    @wraps(func)
     def wrapper(*args, **kwargs):
         conn = None
         buffer = None
-        with engine.connect() as conn:
-            print(conn)
         try:
             conn = engine.connect()
             buffer = func(*args, conn=conn, **kwargs)
@@ -49,11 +40,6 @@ def db_connect(func):
         return buffer
 
     return wrapper
-
-
-def init_database() -> None:
-    if not inspect(engine).has_table("student_groups"):
-        student_groups.create(engine)
 
 
 @db_connect

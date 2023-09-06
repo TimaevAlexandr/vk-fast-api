@@ -1,24 +1,16 @@
 import logging
 import os
 
-from fastapi import FastAPI, Request
+from fastapi import APIRouter, Request
 from vkbottle import VKAPIError
 from vkbottle.bot import Bot, Message
 
-from consts import ADMINS, CONFIRMATION_TOKEN, GROUP_ID, GROUP_ID_COEFFICIENT
-from db_interface import (
-    add_group,
-    delete_group,
-    groups_ids,
-    ids_by_course,
-    init_database,
-)
+from app.db import add_group, delete_group, groups_ids, ids_by_course
+from settings import ADMINS, CONFIRMATION_TOKEN, GROUP_ID, GROUP_ID_COEFFICIENT
 
-app = FastAPI()
+app = APIRouter(prefix="/api", tags=["API"])
 
 bot = Bot(os.getenv("VKTOKEN", "NoToken"))
-
-init_database()
 
 
 async def broadcast(
