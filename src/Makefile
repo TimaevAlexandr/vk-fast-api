@@ -13,10 +13,10 @@ run_prod:
 ###
 
 migrations:
-	cd app && alembic revision --autogenerate && cd ..
+	alembic revision --autogenerate
 
 upgrade:
-	cd app && alembic upgrade head && cd ..
+	alembic upgrade head
 
 ###
 # Linter Tests

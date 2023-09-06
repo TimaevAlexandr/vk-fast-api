@@ -1,6 +1,10 @@
 import logging
 import os
 
+from fastapi import FastAPI, Request
+from vkbottle import VKAPIError
+from vkbottle.bot import Bot, Message
+
 from consts import ADMINS, CONFIRMATION_TOKEN, GROUP_ID, GROUP_ID_COEFFICIENT
 from db_interface import (
     add_group,
@@ -9,9 +13,6 @@ from db_interface import (
     ids_by_course,
     init_database,
 )
-from fastapi import FastAPI, Request
-from vkbottle import VKAPIError
-from vkbottle.bot import Bot, Message
 
 app = FastAPI()
 

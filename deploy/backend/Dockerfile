@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 RUN apt-get -qq update \
-    && apt-get -qq install -y gcc make \
+    && apt-get -qq install -y gcc make libpq-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

@@ -2,9 +2,10 @@ import sys
 from logging.config import fileConfig
 
 from alembic import context
+from sqlalchemy import engine_from_config, pool
+
 from consts import DB_PATH
 from db_interface import metadata
-from sqlalchemy import engine_from_config, pool
 
 sys.path = ["", ".."] + sys.path[1:]
 

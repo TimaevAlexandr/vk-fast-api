@@ -1,7 +1,6 @@
 import logging
 from typing import Sequence
 
-from consts import DB_PATH
 from sqlalchemy import (
     Column,
     Connection,
@@ -15,6 +14,8 @@ from sqlalchemy import (
     select,
 )
 from sqlalchemy.exc import DBAPIError
+
+from consts import DB_PATH
 
 engine = create_engine(DB_PATH, echo=True)
 metadata = MetaData()
