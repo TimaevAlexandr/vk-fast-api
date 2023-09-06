@@ -1,4 +1,5 @@
-/venv/
-/database.db
-/.idea/
-/__pycache__/
+venv/
+database.db
+.idea/
+__pycache__/
+.mypy_cache/
