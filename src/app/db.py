@@ -2,9 +2,10 @@ import logging
 from functools import wraps
 from typing import Sequence
 
-from sqlalchemy import Column, Connection, Integer, MetaData, Table
+from sqlalchemy import Column, Integer, MetaData, Table
 from sqlalchemy.engine import create_engine
 from sqlalchemy.exc import DBAPIError
+from sqlalchemy.future import Connection
 from sqlalchemy.sql.expression import delete, insert, select
 
 from settings import DB_PATH
