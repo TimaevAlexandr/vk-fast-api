@@ -1,16 +1,15 @@
 import logging
-import os
 
 from fastapi import APIRouter, Request
 from vkbottle import VKAPIError
 from vkbottle.bot import Bot, Message
 
+import settings
 from app.db import add_group, delete_group, groups_ids, ids_by_course
-from settings import ADMINS, CONFIRMATION_TOKEN, GROUP_ID, GROUP_ID_COEFFICIENT
 
 app = APIRouter(prefix="/api", tags=["API"])
 
-bot = Bot(os.getenv("VKTOKEN", "NoToken"))
+bot = Bot(settings.VK_TOKEN)
 
 
 async def broadcast(
@@ -20,7 +19,7 @@ async def broadcast(
         for group in ids_by_course(int(course)):
             try:
                 await bot.api.messages.send(
-                    peer_id=(GROUP_ID_COEFFICIENT + group),
+                    peer_id=(settings.GROUP_ID_COEFFICIENT + group),
                     message=text,
                     attachment=attachment,
                     random_id=0,
@@ -34,14 +33,14 @@ async def broadcast(
 
 @bot.on.chat_message(text="Рассылка: <courses>, Текст <text>")
 async def sharing_text(message: Message, courses: str, text: str) -> None:
-    if message.from_id not in ADMINS:
+    if message.from_id not in settings.ADMINS:
         return
     await broadcast(courses, text=text)
 
 
 @bot.on.chat_message(text="Рассылка: <courses>, Пост")
 async def share_publication(message: Message, courses: str) -> None:
-    if message.from_id not in ADMINS:
+    if message.from_id not in settings.ADMINS:
         return
     attachment = message.get_wall_attachment()
     if len(attachment) != 0:
@@ -55,7 +54,7 @@ async def share_publication(message: Message, courses: str) -> None:
 
 @bot.on.chat_message(text="Рассылка: <courses>, Сообщение")
 async def share_message(message: Message, courses: str) -> None:
-    if message.from_id not in ADMINS:
+    if message.from_id not in settings.ADMINS:
         return
 
     if message.fwd_messages:
@@ -78,7 +77,7 @@ async def test(message: Message, course: str | int) -> None:
         await message.answer("Не верно введен курс!")
         return
 
-    group_id = message.peer_id - GROUP_ID_COEFFICIENT
+    group_id = message.peer_id - settings.GROUP_ID_COEFFICIENT
 
     if group_id in groups_ids():
         await message.answer("Ваша беседа уже есть в списке")
@@ -120,7 +119,7 @@ async def test(message: Message, course: str | int) -> None:
 
 @bot.on.chat_message(text="Помощь")
 async def user_help(message: Message) -> None:
-    if message.from_id in ADMINS:
+    if message.from_id in settings.ADMINS:
         await message.answer(
             "Команды:\n\n"
             "Добавить <course> - Добавляет беседу в БД, "
@@ -135,7 +134,10 @@ async def user_help(message: Message) -> None:
 @app.post("/callback")
 async def callback(request: Request) -> str:
     data = await request.json()
-    if data.get("type") == "confirmation" and data.get("group_id") == GROUP_ID:
-        return CONFIRMATION_TOKEN
+    if (
+        data.get("type") == "confirmation"
+        and data.get("group_id") == settings.GROUP_ID
+    ):
+        return settings.CONFIRMATION_TOKEN
     await bot.process_event([data])
     return "ok"

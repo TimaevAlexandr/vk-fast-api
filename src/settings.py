@@ -10,6 +10,7 @@ ADMINS: list[int] = list(map(int, os.getenv("BOT_ADMINS", "").split(",")))
 # VK SETTINGS
 GROUP_ID: str = os.getenv("BOT_GROUP_ID", "")
 CONFIRMATION_TOKEN: str = os.getenv("BOT_CONFIRMATION_TOKEN", "")
+VK_TOKEN: str = os.getenv("VK_TOKEN", "")
 
 # DB
 DB_PATH: str = os.getenv("DB_PATH", "")
