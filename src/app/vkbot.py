@@ -1,3 +1,4 @@
+import logging
 import os
 
 from consts import ADMINS, GROUP_ID_COEFFICIENT
@@ -8,11 +9,9 @@ from db_interface import (
     ids_by_course,
     init_database,
 )
-
 from fastapi import FastAPI, Request
-import logging
-from vkbottle.bot import Bot, Message
 from vkbottle import VKAPIError
+from vkbottle.bot import Bot, Message
 
 app = FastAPI()
 
@@ -71,12 +70,16 @@ async def share_message(message: Message, courses: str) -> None:
 
 
 @bot.on.chat_message(text="Добавить <course>")
-async def test(message: Message, course: str) -> None:
+async def test(message: Message, course: str | int) -> None:
     if course == "admin":
         course = -1
-    elif course.isnumeric() and 1 <= int(course) <= 5:
+    elif isinstance(course, str) and course.isnumeric():
         course = int(course)
     else:
+        await message.answer("Не верно введен курс!")
+        return
+
+    if not 1 <= int(course) <= 5:
         await message.answer("Не верно введен курс!")
         return
 

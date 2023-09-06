@@ -1,3 +1,5 @@
+from typing import Sequence
+
 from consts import DB_PATH
 from sqlalchemy import (
     Column,
@@ -27,7 +29,7 @@ def init_database() -> None:
         student_groups.create(engine)
 
 
-def ids_by_course(course: int) -> list[int]:
+def ids_by_course(course: int) -> Sequence:
     with engine.connect() as conn:
         ids = conn.execute(
             select(student_groups.c.id).where(
@@ -49,7 +51,7 @@ def delete_group(group_id: int) -> None:
         conn.commit()
 
 
-def groups_ids() -> list[int]:
+def groups_ids() -> Sequence:
     with engine.connect() as conn:
         ids = conn.execute(select(student_groups.c.id)).all()
         if len(ids) != 0:
