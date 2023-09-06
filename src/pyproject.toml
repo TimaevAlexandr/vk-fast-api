@@ -22,6 +22,7 @@ isort = "^5.12.0"
 pre-commit = "^3.3.3"
 bandit = "^1.7.5"
 radon = "^6.0.1"
+vkbottle-types = "^5.131.146.16"
 
 [build-system]
 requires = ["poetry-core"]
@@ -47,6 +48,7 @@ line_length = 79
 
 [tool.mypy]
 python_version = "3.11"
+ignore_missing_imports = true
 warn_return_any = true
 warn_unused_configs = true
 exclude = [
