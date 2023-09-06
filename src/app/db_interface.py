@@ -31,6 +31,8 @@ def db_connect(func):
     def wrapper(*args, **kwargs):
         conn = None
         buffer = None
+        with engine.connect() as conn:
+            print(conn)
         try:
             conn = engine.connect()
             buffer = func(*args, conn=conn, **kwargs)
@@ -54,7 +56,7 @@ def init_database() -> None:
 
 
 @db_connect
-def ids_by_course(course: int, *, conn: Connection) -> Sequence:
+def ids_by_course(course: int, *, conn: Connection) -> Sequence[int]:
     ids = conn.execute(
         select(student_groups.c.id).where(student_groups.c.course == course)
     ).all()
@@ -68,7 +70,7 @@ def delete_group(group_id: int, *, conn: Connection) -> None:
 
 
 @db_connect
-def groups_ids(*, conn: Connection) -> Sequence:
+def groups_ids(*, conn: Connection) -> Sequence[int]:
     ids = conn.execute(select(student_groups.c.id)).all()
     return [id_[0] for id_ in ids]
 
