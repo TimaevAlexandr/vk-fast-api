@@ -29,14 +29,21 @@ student_groups = Table(
 
 def db_connect(func):
     def wrapper(*args, **kwargs):
+        conn = None
+        buffer = None
         try:
             conn = engine.connect()
-            func(*args, conn=conn, **kwargs)
-            conn.close()
+            buffer = func(*args, conn=conn, **kwargs)
         except DBAPIError as error:
             logging.error(f"Database error {error}")
         except Exception as error:
             logging.critical(f"Unexpected error {error}")
+        finally:
+            try:
+                conn.close()
+            except DBAPIError as error:
+                logging.error(f"Database error {error}")
+        return buffer
 
     return wrapper
 
