@@ -134,9 +134,8 @@ async def user_help(message: Message) -> None:
 @app.post("/callback")
 async def callback(request: Request) -> str:
     data = await request.json()
-    if (
-        data.get("type") == "confirmation"
-        and data.get("group_id") == int(settings.GROUP_ID)
+    if data.get("type") == "confirmation" and data.get("group_id") == int(
+        settings.GROUP_ID
     ):
         return settings.CONFIRMATION_TOKEN
     await bot.process_event([data])
