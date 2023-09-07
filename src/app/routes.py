@@ -136,7 +136,7 @@ async def callback(request: Request) -> str:
     data = await request.json()
     if (
         data.get("type") == "confirmation"
-        and data.get("group_id") == settings.GROUP_ID
+        and data.get("group_id") == int(settings.GROUP_ID)
     ):
         return settings.CONFIRMATION_TOKEN
     await bot.process_event([data])
