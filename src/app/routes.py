@@ -134,12 +134,11 @@ async def user_help(message: Message) -> None:
 @app.post("/callback")
 async def callback(request: Request) -> Response:
     data = await request.json()
-    response = Response(content_type="text/plain")
     if data.get("type") == "confirmation" and data.get("group_id") == int(
         settings.GROUP_ID
     ):
-        response.body = settings.CONFIRMATION_TOKEN
-        return response
+        return Response(
+            media_type="text/plain", content=settings.CONFIRMATION_TOKEN
+        )
     await bot.process_event([data])
-    response.body = "ok"
-    return response
+    return Response(media_type="text/plain", content="ok")
