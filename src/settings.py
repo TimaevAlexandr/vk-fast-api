@@ -5,7 +5,7 @@ SENTRY_DSN_URL: str = os.getenv("SENTRY_DSN_URL", "")
 ENVIRONMENT: str = os.getenv("ENVIRONMENT", "local")
 
 # APP SETTINGS
-ADMINS: list[int] = list(map(int, os.getenv("BOT_ADMINS", "").split(",")))
+ADMINS: list[int] = list(map(int, os.getenv("BOT_ADMINS", "0").split(",")))
 
 # VK SETTINGS
 GROUP_ID: str = os.getenv("BOT_GROUP_ID", "")
