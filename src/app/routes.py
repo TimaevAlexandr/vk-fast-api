@@ -64,7 +64,7 @@ async def share_message(message: Message, courses: str) -> None:
 
 
 @bot.on.chat_message(text="Добавить <course>")
-async def test(message: Message, course: str | int) -> None:
+async def add_group(message: Message, course: str | int) -> None:
     if course == "admin":
         course = -1
     elif isinstance(course, str) and course.isnumeric():
