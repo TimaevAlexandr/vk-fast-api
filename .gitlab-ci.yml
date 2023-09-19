@@ -1,0 +1,14 @@
+variables:
+  APP_NAME: bot-starostat-fastapi
+  PYTHON_TESTS: "true"
+  #Deploy
+  DEPLOY: "true"
+  APP_PORT: 8000
+  START_COMMAND: "make upgrade && make run_prod"
+  PROD_URL: "https://bot-starostat-fastapi.crysto.team"
+  DEV_URL: "https://bot-starostat-fastapi-dev.crysto.team"
+include:
+  - project: 'Pipelines/base-ci'
+    ref: master
+    file: 'base.yml'
+
