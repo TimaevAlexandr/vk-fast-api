@@ -73,7 +73,7 @@ async def add(message: Message, course: str | int) -> None:
         await message.answer("Не верно введен курс!")
         return
 
-    if not int(course) == -1 or not 1 <= int(course) <= 5:
+    if int(course) != -1 or not 1 <= int(course) <= 5:
         await message.answer("Не верно введен курс!")
         return
 
