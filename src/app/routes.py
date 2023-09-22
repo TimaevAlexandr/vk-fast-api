@@ -10,6 +10,7 @@ from app.db import add_group, delete_group, groups_ids, ids_by_course
 app = APIRouter(prefix="/api", tags=["API"])
 
 bot = Bot(settings.VK_TOKEN)
+
 bot.labeler.vbml_ignore_case = True
 
 async def broadcast(
