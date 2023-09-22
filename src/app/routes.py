@@ -11,6 +11,8 @@ app = APIRouter(prefix="/api", tags=["API"])
 
 bot = Bot(settings.VK_TOKEN)
 
+bot.labeler.vbml_ignore_case = True
+
 
 async def broadcast(
     courses: str, text: str | None = None, attachment: list | None = None
