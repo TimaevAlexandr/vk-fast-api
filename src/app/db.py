@@ -76,16 +76,15 @@ def add_group(group_id: int, course: int, *, conn: Connection) -> None:
     )
     conn.commit()
 
+
 @db_connect
-def change_group_course(group_id: int, course: int, *, conn: Connection) -> None:
+def change_group_course(
+    group_id: int, course: int, *, conn: Connection
+) -> None:
     conn.execute(
         update(student_groups)
         .where(student_groups.c.id == group_id)
         .values(student_groups.c.course),
-        [
-            {
-                "course": course
-            }
-        ]
+        [{"course": course}],
     )
     conn.commit()

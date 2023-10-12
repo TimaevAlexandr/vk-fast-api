@@ -11,7 +11,6 @@ from app.db import (
     delete_group,
     groups_ids,
     ids_by_course,
-    change_group_course,
 )
 
 app = APIRouter(prefix="/api", tags=["API"])
@@ -22,7 +21,7 @@ bot.labeler.vbml_ignore_case = True
 
 
 async def broadcast(
-        courses: str, text: str | None = None, attachment: list | None = None
+    courses: str, text: str | None = None, attachment: list | None = None
 ) -> None:
     for course in courses:
         for group in ids_by_course(int(course)):
@@ -93,7 +92,7 @@ async def change_course(message: Message, course: str | int) -> None:
     if group_id not in groups_ids():
         await message.answer(
             "Вашей беседы нет в списке!\n"
-            "Для добавления беседы используйте: \"Добавить {Ваш курс}\""
+            'Для добавления беседы используйте: "Добавить {Ваш курс}"'
         )
         return
 
@@ -158,9 +157,7 @@ async def add(message: Message, course: str | int) -> None:
         "✅Первокурсники СПбГУТ: https://vk.com/onegut\n\n"
         "По вопросам и предложениям писать @pavel.cmake(разработчику)"
     )
-    await message.answer(
-        "👉🏼 Рекомендуем закрепить данное сообщение"
-    )
+    await message.answer("👉🏼 Рекомендуем закрепить данное сообщение")
 
 
 @bot.on.chat_message(text="Помощь")
@@ -181,7 +178,7 @@ async def user_help(message: Message) -> None:
 async def callback(request: Request) -> Response:
     data = await request.json()
     if data.get("type") == "confirmation" and data.get("group_id") == int(
-            settings.GROUP_ID
+        settings.GROUP_ID
     ):
         return Response(
             media_type="text/plain", content=settings.CONFIRMATION_TOKEN
