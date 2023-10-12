@@ -6,7 +6,7 @@ from sqlalchemy import Column, Integer, MetaData, Table
 from sqlalchemy.engine import create_engine
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.future import Connection
-from sqlalchemy.sql.expression import delete, insert, select
+from sqlalchemy.sql.expression import delete, insert, select, update
 
 from settings import DB_PATH
 
@@ -73,5 +73,19 @@ def add_group(group_id: int, course: int, *, conn: Connection) -> None:
                 "course": course,
             }
         ],
+    )
+    conn.commit()
+
+@db_connect
+def change_group_course(group_id: int, course: int, *, conn: Connection) -> None:
+    conn.execute(
+        update(student_groups)
+        .where(student_groups.c.id == group_id)
+        .values(student_groups.c.course),
+        [
+            {
+                "course": course
+            }
+        ]
     )
     conn.commit()

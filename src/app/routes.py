@@ -5,7 +5,14 @@ from vkbottle import VKAPIError
 from vkbottle.bot import Bot, Message
 
 import settings
-from app.db import add_group, delete_group, groups_ids, ids_by_course
+from app.db import (
+    add_group,
+    change_group_course,
+    delete_group,
+    groups_ids,
+    ids_by_course,
+    change_group_course,
+)
 
 app = APIRouter(prefix="/api", tags=["API"])
 
@@ -90,13 +97,14 @@ async def change_course(message: Message, course: str | int) -> None:
         )
         return
 
-    # TODO(Pavel): Доавить функцию для изменения курса
+    change_group_course(group_id, course)
 
     await message.answer(
         "Ваш курс успешно изменен!\n\n"
         "Теперь вам будут приходить актуальная информация "
         f"для {course} курса."
     )
+
 
 @bot.on.chat_message(text="Добавить <course>")
 async def add(message: Message, course: str | int) -> None:
