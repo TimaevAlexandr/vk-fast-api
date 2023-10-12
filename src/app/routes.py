@@ -15,7 +15,7 @@ bot.labeler.vbml_ignore_case = True
 
 
 async def broadcast(
-    courses: str, text: str | None = None, attachment: list | None = None
+        courses: str, text: str | None = None, attachment: list | None = None
 ) -> None:
     for course in courses:
         for group in ids_by_course(int(course)):
@@ -32,12 +32,14 @@ async def broadcast(
             except VKAPIError as exception:
                 logging.error(exception)
 
+
 async def process_course(course: str | int) -> int:
     if course == "admin":
         return -1
     if isinstance(course, str) and course.isnumeric():
         return int(course)
     return 0
+
 
 @bot.on.chat_message(text="Рассылка: <courses>, Текст <text>")
 async def sharing_text(message: Message, courses: str, text: str) -> None:
@@ -73,17 +75,34 @@ async def share_message(message: Message, courses: str) -> None:
 
 @bot.on.chat_message(text="Изменить <course>")
 async def change_course(message: Message, course: str | int) -> None:
-    if (course := process_course(course)) == 0:
+    course = process_course(course)
+
+    if course not in (-1, 1, 2, 3, 4, 5):
         await message.answer("Не верно введен курс!")
         return
+
+    group_id = message.peer_id - settings.GROUP_ID_COEFFICIENT
+
+    if group_id not in groups_ids():
+        await message.answer(
+            "Вашей беседы нет в списке!\n"
+            "Для добавления беседы используйте: \"Добавить {Ваш курс}\""
+        )
+        return
+
+    # TODO(Pavel): Доавить функцию для изменения курса
+
+    await message.answer(
+        "Ваш курс успешно изменен!\n\n"
+        "Теперь вам будут приходить актуальная информация "
+        f"для {course} курса."
+    )
 
 @bot.on.chat_message(text="Добавить <course>")
 async def add(message: Message, course: str | int) -> None:
-    if (course := process_course(course)) == 0:
-        await message.answer("Не верно введен курс!")
-        return
+    course = process_course(course)
 
-    if int(course) not in (-1, 1, 2, 3, 4, 5):
+    if course not in (-1, 1, 2, 3, 4, 5):
         await message.answer("Не верно введен курс!")
         return
 
@@ -95,7 +114,11 @@ async def add(message: Message, course: str | int) -> None:
 
     add_group(group_id, course)
 
-    await message.answer("Ваша беседа успешно добавлена!")
+    await message.answer(
+        "Ваша беседа успешно добавлена!\n\n"
+        "Теперь вам будут приходить актуальная информация "
+        f"для {course} курса."
+    )
     await message.answer(
         "Добро пожаловать в беседу!\n\n"
         "Этот чат создан специально для "
@@ -127,6 +150,9 @@ async def add(message: Message, course: str | int) -> None:
         "✅Первокурсники СПбГУТ: https://vk.com/onegut\n\n"
         "По вопросам и предложениям писать @pavel.cmake(разработчику)"
     )
+    await message.answer(
+        "👉🏼 Рекомендуем закрепить данное сообщение"
+    )
 
 
 @bot.on.chat_message(text="Помощь")
@@ -147,7 +173,7 @@ async def user_help(message: Message) -> None:
 async def callback(request: Request) -> Response:
     data = await request.json()
     if data.get("type") == "confirmation" and data.get("group_id") == int(
-        settings.GROUP_ID
+            settings.GROUP_ID
     ):
         return Response(
             media_type="text/plain", content=settings.CONFIRMATION_TOKEN
