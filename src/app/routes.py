@@ -32,6 +32,12 @@ async def broadcast(
             except VKAPIError as exception:
                 logging.error(exception)
 
+async def process_course(course: str | int) -> int:
+    if course == "admin":
+        return -1
+    if isinstance(course, str) and course.isnumeric():
+        return int(course)
+    return 0
 
 @bot.on.chat_message(text="Рассылка: <courses>, Текст <text>")
 async def sharing_text(message: Message, courses: str, text: str) -> None:
@@ -65,13 +71,15 @@ async def share_message(message: Message, courses: str) -> None:
         await message.answer("Ошибка: нет пересланного сообщения")
 
 
+@bot.on.chat_message(text="Изменить <course>")
+async def change_course(message: Message, course: str | int) -> None:
+    if (course := process_course(course)) == 0:
+        await message.answer("Не верно введен курс!")
+        return
+
 @bot.on.chat_message(text="Добавить <course>")
 async def add(message: Message, course: str | int) -> None:
-    if course == "admin":
-        course = -1
-    elif isinstance(course, str) and course.isnumeric():
-        course = int(course)
-    else:
+    if (course := process_course(course)) == 0:
         await message.answer("Не верно введен курс!")
         return
 
