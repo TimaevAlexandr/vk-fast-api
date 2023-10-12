@@ -84,7 +84,6 @@ def change_group_course(
     conn.execute(
         update(student_groups)
         .where(student_groups.c.id == group_id)
-        .values(student_groups.c.course),
-        [{"course": course}],
+        .values(course=course)
     )
     conn.commit()
