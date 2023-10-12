@@ -81,7 +81,7 @@ async def share_message(message: Message, courses: str) -> None:
 
 @bot.on.chat_message(text="Изменить <course>")
 async def change_course(message: Message, course: str | int) -> None:
-    course = process_course(course)
+    course = await process_course(course)
 
     if course not in (-1, 1, 2, 3, 4, 5):
         await message.answer("Не верно введен курс!")
@@ -107,7 +107,7 @@ async def change_course(message: Message, course: str | int) -> None:
 
 @bot.on.chat_message(text="Добавить <course>")
 async def add(message: Message, course: str | int) -> None:
-    course = process_course(course)
+    course = await process_course(course)
 
     if course not in (-1, 1, 2, 3, 4, 5):
         await message.answer("Не верно введен курс!")
