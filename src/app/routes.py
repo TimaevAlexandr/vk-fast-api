@@ -79,7 +79,7 @@ async def share_message(message: Message, courses: str) -> None:
         await message.answer("Ошибка: нет пересланного сообщения")
 
 
-@bot.on.chat_message(text="Изменить <course>")
+@bot.on.chat_message(text="Изменить курс <course>")
 async def change_course(message: Message, course: str | int) -> None:
     course = await process_course(course)
 
