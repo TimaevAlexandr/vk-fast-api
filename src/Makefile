@@ -52,4 +52,4 @@ ltest_ci: black_ci isort_ci flake bandit radon
 ###
 
 pytest:
-	pytest --cov=app --cov-report html tests/
+	python -m pytest -c configs/pytest.ini app/
