@@ -22,12 +22,9 @@ bot.labeler.vbml_ignore_case = True
 
 async def broadcast(
     courses: str, text: str | None = None, attachment: list | None = None
-) -> bool:
+) -> None:
     for course in courses:
-        ids = ids_by_course(int(course))
-        if ids is None:
-            return False
-        for group in ids:
+        for group in ids_by_course(int(course)):
             try:
                 await bot.api.messages.send(
                     peer_id=(settings.GROUP_ID_COEFFICIENT + group),
@@ -40,7 +37,6 @@ async def broadcast(
                 delete_group(group)
             except VKAPIError as exception:
                 logging.error(exception)
-    return True
 
 
 async def process_course(course: str | int) -> int:
@@ -55,10 +51,7 @@ async def process_course(course: str | int) -> int:
 async def sharing_text(message: Message, courses: str, text: str) -> None:
     if message.from_id not in settings.ADMINS:
         return
-    if await broadcast(courses, text=text):
-        message.answer("Текст успешно отправлен!")
-    else:
-        message.answer("Произошла непредвиденная ошибка!")
+    await broadcast(courses, text=text)
 
 
 @bot.on.chat_message(text="Рассылка: <courses>, Пост")
@@ -68,12 +61,9 @@ async def share_publication(message: Message, courses: str) -> None:
     attachment = message.get_wall_attachment()
     if len(attachment) != 0:
         attachment = attachment[0]
-        if await broadcast(
+        await broadcast(
             courses, attachment=[f"wall{attachment.owner_id}_{attachment.id}"]
-        ):
-            message.answer("Пост успешно отправлен!")
-        else:
-            message.answer("Произошла непредвиденная ошибка!")
+        )
     else:
         message.forward("Ошибка пост не был прикреплен!")
 
@@ -84,10 +74,7 @@ async def share_message(message: Message, courses: str) -> None:
         return
 
     if message.fwd_messages:
-        if await broadcast(courses, text=message.fwd_messages[0].text):
-            message.answer("Сообщение успешно отправлено!")
-        else:
-            message.answer("Произошла непредвиденная ошибка!")
+        await broadcast(courses, text=message.fwd_messages[0].text)
     else:
         await message.answer("Ошибка: нет пересланного сообщения")
 
@@ -102,13 +89,7 @@ async def change_course(message: Message, course: str | int) -> None:
 
     group_id = message.peer_id - settings.GROUP_ID_COEFFICIENT
 
-    groups_ids_ = groups_ids()
-
-    if groups_ids_ is None:
-        message.answer("Произошла непредвиденная ошибка!")
-        return
-
-    if group_id not in groups_ids_:
+    if group_id not in groups_ids():
         await message.answer(
             "Вашей беседы нет в списке!\n"
             'Для добавления беседы используйте: "Добавить {Ваш курс}"'
