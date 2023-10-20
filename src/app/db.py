@@ -10,7 +10,7 @@ from sqlalchemy.sql.expression import delete, insert, select
 
 from settings import DB_PATH
 
-engine = create_engine(DB_PATH, echo=True)
+engine = create_engine(DB_PATH, echo=True, pool_pre_ping=True)
 metadata = MetaData()
 
 student_groups = Table(
