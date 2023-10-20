@@ -21,7 +21,7 @@ bot.labeler.vbml_ignore_case = True
 
 
 async def broadcast(
-    courses: str, text: str | None = None, attachment: list | None = None
+        courses: str, text: str | None = None, attachment: list | None = None
 ) -> bool:
     for course in courses:
         ids = ids_by_course(int(course))
@@ -69,7 +69,8 @@ async def share_publication(message: Message, courses: str) -> None:
     if len(attachment) != 0:
         attachment = attachment[0]
         if await broadcast(
-            courses, attachment=[f"wall{attachment.owner_id}_{attachment.id}"]
+                courses,
+                attachment=[f"wall{attachment.owner_id}_{attachment.id}"]
         ):
             message.answer("Пост успешно отправлен!")
         else:
@@ -134,7 +135,13 @@ async def add(message: Message, course: str | int) -> None:
 
     group_id = message.peer_id - settings.GROUP_ID_COEFFICIENT
 
-    if group_id in groups_ids():
+    groups_ids_ = groups_ids()
+
+    if groups_ids_ is None:
+        message.answer("Произошла непредвиденная ошибка!")
+        return
+
+    if group_id in groups_ids_:
         await message.answer("Ваша беседа уже есть в списке")
         return
 
@@ -197,7 +204,7 @@ async def user_help(message: Message) -> None:
 async def callback(request: Request) -> Response:
     data = await request.json()
     if data.get("type") == "confirmation" and data.get("group_id") == int(
-        settings.GROUP_ID
+            settings.GROUP_ID
     ):
         return Response(
             media_type="text/plain", content=settings.CONFIRMATION_TOKEN
