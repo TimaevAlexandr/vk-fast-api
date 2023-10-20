@@ -13,7 +13,7 @@ CONFIRMATION_TOKEN: str = os.getenv("BOT_CONFIRMATION_TOKEN", "")
 VK_TOKEN: str = os.getenv("VK_TOKEN", "")
 
 # DB
-DB_PATH: str = os.getenv("DB_PATH", "")
+DB_PATH: str = os.getenv("DB_PATH", "sqlite:///:memory:")
 
 # CONSTANTS
 GROUP_ID_COEFFICIENT: int = int(2e9)

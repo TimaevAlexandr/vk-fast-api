@@ -41,4 +41,7 @@ mypy:
 linter:
 	docker run -e ENVIRONMENT=test -v ${CUR_DIR}/src:/app --rm ${COMPOSE_PROJECT_NAME}/fastapi:${VERSION}-dev make ltest
 
+pytest:
+	docker run -e PYTHONPATH=/app -e ENVIRONMENT=test -v ${CUR_DIR}/src:/app --rm ${COMPOSE_PROJECT_NAME}/fastapi:${VERSION}-dev make pytest
+
 ltest: mypy linter

@@ -1,10 +1,12 @@
+import importlib
+import os
 import sys
 from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from app.db import metadata
+from app.db import Base
 from settings import DB_PATH
 
 sys.path = ["", ".."] + sys.path[1:]
@@ -20,7 +22,7 @@ fileConfig(config.config_file_name or "")
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
-target_metadata = metadata
+target_metadata = Base.metadata
 
 
 # target_metadata = None

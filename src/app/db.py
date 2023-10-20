@@ -2,23 +2,25 @@ import logging
 from functools import wraps
 from typing import Sequence
 
-from sqlalchemy import Column, Integer, MetaData, Table
+from sqlalchemy import Column, Integer
 from sqlalchemy.engine import create_engine
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.future import Connection
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.sql.expression import delete, insert, select, update
 
+from app.exceptions import DBError
 from settings import DB_PATH
 
+Base = declarative_base()
 engine = create_engine(DB_PATH, echo=True, pool_pre_ping=True)
-metadata = MetaData()
 
-student_groups = Table(
-    "student_groups",
-    metadata,
-    Column("id", Integer, primary_key=True),
-    Column("course", Integer, nullable=False),
-)
+
+class StudentGroup(Base):
+    __tablename__ = "student_groups"
+
+    id = Column(Integer, primary_key=True)
+    course = Column(Integer, nullable=False)
 
 
 def db_connect(func):
@@ -29,15 +31,18 @@ def db_connect(func):
         try:
             conn = engine.connect()
             buffer = func(*args, conn=conn, **kwargs)
-        except DBAPIError as error:
-            logging.error(f"Database error {error}")
-        except Exception as error:
-            logging.critical(f"Unexpected error {error}")
+        except DBAPIError as err:
+            logging.error(f"Database error")
+            raise DBError() from err
+        except Exception as err:
+            logging.critical(f"Unexpected error")
+            raise DBError() from err
         finally:
             try:
                 conn.close()
-            except DBAPIError as error:
-                logging.error(f"Database error {error}")
+            except DBAPIError as err:
+                logging.error(f"Database error")
+                raise DBError() from err
         return buffer
 
     return wrapper
@@ -46,27 +51,27 @@ def db_connect(func):
 @db_connect
 def ids_by_course(course: int, *, conn: Connection) -> Sequence[int]:
     ids = conn.execute(
-        select(student_groups.c.id).where(student_groups.c.course == course)
+        select(StudentGroup.id).where(StudentGroup.course == course)
     ).all()
     return [id_[0] for id_ in ids]
 
 
 @db_connect
 def delete_group(group_id: int, *, conn: Connection) -> None:
-    conn.execute(delete(student_groups).where(student_groups.c.id == group_id))
+    conn.execute(delete(StudentGroup).where(StudentGroup.id == group_id))
     conn.commit()
 
 
 @db_connect
 def groups_ids(*, conn: Connection) -> Sequence[int]:
-    ids = conn.execute(select(student_groups.c.id)).all()
+    ids = conn.execute(select(StudentGroup.id)).all()
     return [id_[0] for id_ in ids]
 
 
 @db_connect
 def add_group(group_id: int, course: int, *, conn: Connection) -> None:
     conn.execute(
-        insert(student_groups),
+        insert(StudentGroup),
         [
             {
                 "id": group_id,
@@ -82,8 +87,8 @@ def change_group_course(
     group_id: int, course: int, *, conn: Connection
 ) -> None:
     conn.execute(
-        update(student_groups)
-        .where(student_groups.c.id == group_id)
+        update(StudentGroup)
+        .where(StudentGroup.id == group_id)
         .values(course=course)
     )
     conn.commit()

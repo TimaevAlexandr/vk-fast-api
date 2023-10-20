@@ -46,3 +46,10 @@ black_ci:
 
 ltest: black isort flake bandit radon
 ltest_ci: black_ci isort_ci flake bandit radon
+
+###
+# Unit Tests
+###
+
+pytest:
+	pytest --cov=app --cov-report html tests/
