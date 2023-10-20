@@ -3,17 +3,16 @@ from sqlalchemy import select
 from sqlalchemy.engine import Connection
 from sqlalchemy.exc import DBAPIError
 
-
 from app.db import (
+    Base,
     StudentGroup,
-    ids_by_course,
-    delete_group,
-    groups_ids,
     add_group,
     change_group_course,
-    Base,
-    engine,
     db_connect,
+    delete_group,
+    engine,
+    groups_ids,
+    ids_by_course,
 )
 from app.exceptions import DBError
 

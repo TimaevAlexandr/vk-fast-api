@@ -32,16 +32,16 @@ def db_connect(func):
             conn = engine.connect()
             buffer = func(*args, conn=conn, **kwargs)
         except DBAPIError as err:
-            logging.error(f"Database error")
+            logging.error("Database error")
             raise DBError() from err
         except Exception as err:
-            logging.critical(f"Unexpected error")
+            logging.critical("Unexpected error")
             raise DBError() from err
         finally:
             try:
                 conn.close()
             except DBAPIError as err:
-                logging.error(f"Database error")
+                logging.error("Database error")
                 raise DBError() from err
         return buffer
 

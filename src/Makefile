@@ -29,7 +29,7 @@ flake:
 	poetry run flake8
 
 bandit:
-	poetry run bandit -r app
+	poetry run bandit -c configs/bandit.yaml -r app
 
 mypy:
 	poetry run mypy .
