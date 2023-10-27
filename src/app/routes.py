@@ -13,6 +13,8 @@ bot = Bot(settings.VK_TOKEN)
 
 bot.labeler.vbml_ignore_case = True
 
+logger = logging.getLogger(__name__)
+
 
 async def broadcast(
     courses: str, text: str | None = None, attachment: list | None = None
@@ -137,12 +139,15 @@ async def user_help(message: Message) -> None:
 
 @app.post("/callback")
 async def callback(request: Request) -> Response:
-    data = await request.json()
-    if data.get("type") == "confirmation" and data.get("group_id") == int(
-        settings.GROUP_ID
-    ):
-        return Response(
-            media_type="text/plain", content=settings.CONFIRMATION_TOKEN
-        )
-    await bot.process_event(data)
+    try:
+        data = await request.json()
+        if data.get("type") == "confirmation" and data.get("group_id") == int(
+            settings.GROUP_ID
+        ):
+            return Response(
+                media_type="text/plain", content=settings.CONFIRMATION_TOKEN
+            )
+        await bot.process_event(data)
+    except Exception as e:
+        logger.exception(e)
     return Response(media_type="text/plain", content="ok")
