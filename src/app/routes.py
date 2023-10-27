@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, Request, Response
+from fastapi import APIRouter, Request, Response, BackgroundTasks
 from vkbottle import VKAPIError
 from vkbottle.bot import Bot, Message
 
@@ -201,7 +201,7 @@ async def user_help(message: Message) -> None:
 
 
 @app.post("/callback")
-async def callback(request: Request) -> Response:
+async def callback(request: Request, background_tasks: BackgroundTasks) -> Response:
     data = await request.json()
     if data.get("type") == "confirmation" and data.get("group_id") == int(
             settings.GROUP_ID
@@ -209,5 +209,5 @@ async def callback(request: Request) -> Response:
         return Response(
             media_type="text/plain", content=settings.CONFIRMATION_TOKEN
         )
-    await bot.process_event(data)
+    background_tasks.add_task(bot.process_event, data)
     return Response(media_type="text/plain", content="ok")
