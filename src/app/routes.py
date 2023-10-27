@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, Request, Response, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Request, Response
 from vkbottle import VKAPIError
 from vkbottle.bot import Bot, Message
 
@@ -21,7 +21,7 @@ bot.labeler.vbml_ignore_case = True
 
 
 async def broadcast(
-        courses: str, text: str | None = None, attachment: list | None = None
+    courses: str, text: str | None = None, attachment: list | None = None
 ) -> bool:
     for course in courses:
         ids = ids_by_course(int(course))
@@ -69,8 +69,7 @@ async def share_publication(message: Message, courses: str) -> None:
     if len(attachment) != 0:
         attachment = attachment[0]
         if await broadcast(
-                courses,
-                attachment=[f"wall{attachment.owner_id}_{attachment.id}"]
+            courses, attachment=[f"wall{attachment.owner_id}_{attachment.id}"]
         ):
             message.answer("Пост успешно отправлен!")
         else:
@@ -201,11 +200,12 @@ async def user_help(message: Message) -> None:
 
 
 @app.post("/callback")
-async def callback(request: Request, background_tasks: BackgroundTasks) \
-        -> Response:
+async def callback(
+    request: Request, background_tasks: BackgroundTasks
+) -> Response:
     data = await request.json()
     if data.get("type") == "confirmation" and data.get("group_id") == int(
-            settings.GROUP_ID
+        settings.GROUP_ID
     ):
         return Response(
             media_type="text/plain", content=settings.CONFIRMATION_TOKEN
