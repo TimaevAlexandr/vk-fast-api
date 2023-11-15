@@ -1,72 +1,77 @@
 import logging
 from functools import wraps
-from typing import Sequence
+from typing import Iterable
 
-from sqlalchemy import Column, Integer, MetaData, Table
-from sqlalchemy.engine import create_engine
+from sqlalchemy import Column, Integer
 from sqlalchemy.exc import DBAPIError
-from sqlalchemy.future import Connection
-from sqlalchemy.sql.expression import delete, insert, select
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql.expression import delete, insert, select, update
 
+from app.exceptions import DBError
 from settings import DB_PATH
 
-engine = create_engine(DB_PATH, echo=True, pool_pre_ping=True)
-metadata = MetaData()
-
-student_groups = Table(
-    "student_groups",
-    metadata,
-    Column("id", Integer, primary_key=True),
-    Column("course", Integer, nullable=False),
+Base = declarative_base()
+engine = create_async_engine(DB_PATH, echo=True, pool_pre_ping=True)
+SessionLocal = sessionmaker(
+    autocommit=False, autoflush=False, bind=engine, class_=AsyncSession
 )
+
+
+class StudentGroup(Base):  # type: ignore[valid-type,misc]
+    __tablename__ = "student_groups"
+
+    id = Column(Integer, primary_key=True)
+    course = Column(Integer, nullable=False)
 
 
 def db_connect(func):
     @wraps(func)
-    def wrapper(*args, **kwargs):
-        conn = None
-        buffer = None
-        try:
-            conn = engine.connect()
-            buffer = func(*args, conn=conn, **kwargs)
-        except DBAPIError as error:
-            logging.error(f"Database error {error}")
-        except Exception as error:
-            logging.critical(f"Unexpected error {error}")
-        finally:
+    async def wrapper(*args, **kwargs):
+        async with SessionLocal() as session:
             try:
-                conn.close()
-            except DBAPIError as error:
-                logging.error(f"Database error {error}")
-        return buffer
+                return await func(*args, session=session, **kwargs)
+            except DBAPIError as err:
+                logging.error("Database error")
+                raise DBError() from err
+            except Exception as err:
+                logging.critical("Unexpected error")
+                raise DBError() from err
 
     return wrapper
 
 
 @db_connect
-def ids_by_course(course: int, *, conn: Connection) -> Sequence[int]:
-    ids = conn.execute(
-        select(student_groups.c.id).where(student_groups.c.course == course)
-    ).all()
-    return [id_[0] for id_ in ids]
+async def delete_group(group_id: int, *, session: AsyncSession) -> None:
+    await session.execute(
+        delete(StudentGroup).where(StudentGroup.id == group_id)  # type: ignore
+    )
+    await session.commit()
 
 
 @db_connect
-def delete_group(group_id: int, *, conn: Connection) -> None:
-    conn.execute(delete(student_groups).where(student_groups.c.id == group_id))
-    conn.commit()
+async def get_group_ids_by_course(
+    course: int, *, session: AsyncSession
+) -> Iterable[int]:
+    group_ids = await session.execute(
+        select(StudentGroup).where(StudentGroup.course == course)
+    )
+    return [group_id[0].id for group_id in group_ids]
 
 
 @db_connect
-def groups_ids(*, conn: Connection) -> Sequence[int]:
-    ids = conn.execute(select(student_groups.c.id)).all()
-    return [id_[0] for id_ in ids]
+async def get_groups_ids(*, session: AsyncSession) -> Iterable[int]:
+    group_ids = (await session.execute(select(StudentGroup))).all()
+    return [group_id[0].id for group_id in group_ids]
 
 
 @db_connect
-def add_group(group_id: int, course: int, *, conn: Connection) -> None:
-    conn.execute(
-        insert(student_groups),
+async def add_group(
+    group_id: int, course: int, *, session: AsyncSession
+) -> None:
+    await session.execute(
+        insert(StudentGroup),  # type: ignore
         [
             {
                 "id": group_id,
@@ -74,4 +79,16 @@ def add_group(group_id: int, course: int, *, conn: Connection) -> None:
             }
         ],
     )
-    conn.commit()
+    await session.commit()
+
+
+@db_connect
+async def change_group_course(
+    group_id: int, course: int, *, session: AsyncSession
+) -> None:
+    await session.execute(
+        update(StudentGroup)  # type: ignore
+        .where(StudentGroup.id == group_id)
+        .values(course=course)
+    )
+    await session.commit()
