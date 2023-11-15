@@ -47,10 +47,10 @@ async def course_broadcast(
     if not ids:
         return course, (False,)
 
-    coroutines: list[Coroutine[None, None, bool]] = []
+    result: list[bool] = []
     for group in ids:
-        coroutines.append(group_broadcast(group, text, attachment))
-    result = await asyncio.gather(*coroutines)
+        res = await group_broadcast(group, text, attachment)
+        result.append(res)
     return course, tuple(result)  # type: ignore[return-value]
 
 
