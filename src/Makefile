@@ -29,7 +29,7 @@ flake:
 	poetry run flake8
 
 bandit:
-	poetry run bandit -r app
+	poetry run bandit -c configs/bandit.yaml -r app
 
 mypy:
 	poetry run mypy .
@@ -46,3 +46,10 @@ black_ci:
 
 ltest: black isort flake bandit radon
 ltest_ci: black_ci isort_ci flake bandit radon
+
+###
+# Unit Tests
+###
+
+pytest:
+	python -m pytest -c configs/pytest.ini app/

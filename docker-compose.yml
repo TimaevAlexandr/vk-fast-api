@@ -41,3 +41,5 @@ services:
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready" ]
       <<: *healthcheck_defaults
+    ports:
+      - "5432:5432"
