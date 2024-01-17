@@ -119,7 +119,7 @@ async def test_callback_full_event(mocker, init_db, groups):
             mocker.call(
                 peer_ids=[1],
                 message=(
-                    "Успешно отправлено!\n\n"
+                    "Рассылка отправлена не полностью.\n\n"
                     "Курс 1: +\n"
                     "Курс 2: +\n"
                     "Курс 3: +\n"
