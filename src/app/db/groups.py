@@ -6,8 +6,6 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import delete, insert, select, update
 
 from app.db.common import Base, db_connect
-from app.db.messages import Message
-
 
 class Association(Base):  # type: ignore[valid-type,misc]
     __tablename__ = "association_table"
@@ -17,7 +15,7 @@ class Association(Base):  # type: ignore[valid-type,misc]
     )
     messages_id = Column(ForeignKey("messages.id"), primary_key=True)
     received = Column(Boolean, nullable=False)
-    message = relationship(Message)
+    message = relationship("Message")
 
 
 class StudentGroup(Base):  # type: ignore[valid-type,misc]
@@ -25,7 +23,7 @@ class StudentGroup(Base):  # type: ignore[valid-type,misc]
 
     id = Column(Integer, primary_key=True)
     course = Column(Integer, nullable=False)
-    messages = relationship(Association)
+    messages = relationship("Association")
 
 
 @db_connect
