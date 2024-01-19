@@ -6,7 +6,7 @@ import aiohttp
 from vkbottle import VKAPIError
 
 import settings
-from app.db import delete_group, get_group_ids_by_course
+from app.db.groups import delete_group, get_group_ids_by_course
 from app.exceptions import DBError
 from app.vk import bot
 

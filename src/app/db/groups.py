@@ -1,22 +1,21 @@
-import logging
-from functools import wraps
 from typing import Iterable
 
-from sqlalchemy import Column, Integer
-from sqlalchemy.exc import DBAPIError
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Column, Integer, Boolean, ForeignKey
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import delete, insert, select, update
 
-from app.exceptions import DBError
-from settings import DB_PATH
+from app.db.common import Base, db_connect
+from app.db.messages import Message
 
-Base = declarative_base()
-engine = create_async_engine(DB_PATH, echo=True, pool_pre_ping=True)
-SessionLocal = sessionmaker(
-    autocommit=False, autoflush=False, bind=engine, class_=AsyncSession
-)
+
+class Association(Base):
+    __tablename__ = "association_table"
+
+    student_groups_id = Column(ForeignKey("student_groups.id"), primary_key=True)
+    messages_id =  Column(ForeignKey("messages.id"), primary_key=True)
+    received = Column(Boolean, nullable=False)
+    message = relationship("Message")
 
 
 class StudentGroup(Base):  # type: ignore[valid-type,misc]
@@ -24,22 +23,7 @@ class StudentGroup(Base):  # type: ignore[valid-type,misc]
 
     id = Column(Integer, primary_key=True)
     course = Column(Integer, nullable=False)
-
-
-def db_connect(func):
-    @wraps(func)
-    async def wrapper(*args, **kwargs):
-        async with SessionLocal() as session:
-            try:
-                return await func(*args, session=session, **kwargs)
-            except DBAPIError as err:
-                logging.error("Database error")
-                raise DBError() from err
-            except Exception as err:
-                logging.critical("Unexpected error")
-                raise DBError() from err
-
-    return wrapper
+    messages = relationship("Association")
 
 
 @db_connect
