@@ -1,19 +1,20 @@
 from typing import Iterable
 
-from sqlalchemy import Column, Integer, Boolean, ForeignKey
+from sqlalchemy import Boolean, Column, ForeignKey, Integer
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import delete, insert, select, update
 
 from app.db.common import Base, db_connect
-from app.db.messages import Message
 
 
 class Association(Base):
     __tablename__ = "association_table"
 
-    student_groups_id = Column(ForeignKey("student_groups.id"), primary_key=True)
-    messages_id =  Column(ForeignKey("messages.id"), primary_key=True)
+    student_groups_id = Column(
+        ForeignKey("student_groups.id"), primary_key=True
+    )
+    messages_id = Column(ForeignKey("messages.id"), primary_key=True)
     received = Column(Boolean, nullable=False)
     message = relationship("Message")
 
