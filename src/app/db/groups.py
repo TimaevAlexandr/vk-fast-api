@@ -24,7 +24,7 @@ class StudentGroup(Base):  # type: ignore[valid-type,misc]
 
     id = Column(Integer, primary_key=True)
     course = Column(Integer, nullable=False)
-    messages = relationship("Association")
+    messages = relationship("GroupMessage")
 
 
 @db_connect
