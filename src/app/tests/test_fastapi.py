@@ -135,10 +135,14 @@ async def test_callback_full_event(mocker, init_db, groups):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "test_group_id, new_course_value", [(1, 3), (2, 4), (3, 5)]
+    "test_group_id, new_course_value, new_course_text",
+    [
+        (1, 3, App.bot.messages.EDITED_SUCCESSFULLY),
+        (2, 2, "Группе уже присвоен %(course)s курс"),
+    ],
 )
 async def test_fix_course_change(
-    mocker, init_db, groups, test_group_id, new_course_value
+    mocker, init_db, groups, test_group_id, new_course_value, new_course_text
 ):
     peer_ids = test_group_id + settings.GROUP_ID_COEFFICIENT
     client = TestClient(app)
@@ -176,8 +180,7 @@ async def test_fix_course_change(
         [
             mocker.call(
                 peer_ids=[peer_ids],
-                message=App.bot.messages.EDITED_SUCCESSFULLY
-                % {"course": new_course_value},
+                message=new_course_text % {"course": new_course_value},
                 random_id=0,
             )
         ]
