@@ -61,6 +61,16 @@ async def get_group_ids_by_course(
 
 
 @db_connect
+async def get_course_by_group_id(
+    group_id: int, *, session: AsyncSession
+) -> int | None:
+    course: int | None = await session.scalar(
+        select(StudentGroup.course).where(StudentGroup.id == group_id)
+    )
+    return course
+
+
+@db_connect
 async def get_groups_ids(*, session: AsyncSession) -> Iterable[int]:
     group_ids = (await session.execute(select(StudentGroup))).all()
     return [group_id[0].id for group_id in group_ids]
