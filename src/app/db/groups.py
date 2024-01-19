@@ -7,8 +7,9 @@ from sqlalchemy.sql.expression import delete, insert, select, update
 
 from app.db.common import Base, db_connect
 
-class Association(Base):  # type: ignore[valid-type,misc]
-    __tablename__ = "association_table"
+
+class GroupMessage(Base):  # type: ignore[valid-type,misc]
+    __tablename__ = "group_message"
 
     student_groups_id = Column(
         ForeignKey("student_groups.id"), primary_key=True
