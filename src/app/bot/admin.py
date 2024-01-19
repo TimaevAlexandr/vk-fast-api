@@ -2,7 +2,7 @@ from vkbottle.bot import BotLabeler
 from vkbottle.user import Message
 
 from app.bot import messages
-from app.db import add_group, change_group_course
+from app.db import add_group, change_group_course, get_course_by_group_id
 from app.utils import get_group_id, group_is_added, handle_course
 
 admin_labeler = BotLabeler()
@@ -17,6 +17,10 @@ async def change_course(message: Message, course: str) -> None:
     group_id = get_group_id(message)
     if not await group_is_added(group_id):
         await message.answer("Вашей беседы ещё нет в списке")
+        return
+
+    if int(course) == await get_course_by_group_id(group_id):
+        await message.answer("Группе уже присвоен %s курс" % course)
         return
 
     await change_group_course(group_id, int(course))
