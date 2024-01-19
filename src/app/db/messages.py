@@ -7,7 +7,7 @@ from sqlalchemy.sql.expression import insert
 from app.db.common import Base, db_connect
 
 
-class Message(Base):
+class Message(Base):  # type: ignore[valid-type,misc]
     __tablename__ = "messages"
 
     id = Column(Integer, primary_key=True)
@@ -27,7 +27,7 @@ async def add_message(
     session: AsyncSession
 ) -> None:
     await session.execute(
-        insert(Message),
+        insert(Message),  # type: ignore
         [
             {
                 "message": message,

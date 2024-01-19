@@ -9,7 +9,7 @@ from app.db.common import Base, db_connect
 from app.db.messages import Message
 
 
-class Association(Base):
+class Association(Base):  # type: ignore[valid-type,misc]
     __tablename__ = "association_table"
 
     student_groups_id = Column(
