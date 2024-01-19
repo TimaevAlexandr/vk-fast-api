@@ -3,7 +3,12 @@ from unittest.mock import AsyncMock
 import pytest
 
 import settings
-from app.utils import handle_course, handle_group, process_course
+from app.utils import (
+    get_group_id,
+    group_is_added,
+    handle_course,
+    process_course,
+)
 
 
 @pytest.mark.asyncio
@@ -79,13 +84,13 @@ async def test_handle_course_no_groups(mocker):
 @pytest.mark.parametrize(
     "group_id, groups_ids, expected",
     [
-        (1, [1, 2, 3], (None, "text")),
-        (2, [1, 2, 3], (None, "text")),
-        (3, [1, 2, 3], (None, "text")),
-        (4, [1, 2, 3], (4, None)),
+        (1, [1, 2, 3], True),
+        (2, [1, 2, 3], True),
+        (3, [1, 2, 3], True),
+        (4, [1, 2, 3], False),
     ],
 )
-async def test_handle_group_successful(mocker, group_id, groups_ids, expected):
+async def test_group_is_added(mocker, group_id, groups_ids, expected):
     message = mocker.Mock()
     message.peer_id = group_id + settings.GROUP_ID_COEFFICIENT
     message.answer = mocker.AsyncMock()
@@ -94,8 +99,16 @@ async def test_handle_group_successful(mocker, group_id, groups_ids, expected):
         return_value=groups_ids,
         new_callable=AsyncMock,
     )
-    assert await handle_group(message, "text") == expected
-    if not expected[0]:
-        message.answer.assert_called_once_with("text")
-    else:
-        mock_get_groups_ids.assert_awaited_once()
+    assert await group_is_added(group_id) == expected
+    mock_get_groups_ids.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "group_id",
+    [1, 2, 3, 4],
+)
+async def test_get_group_id(mocker, group_id):
+    message = mocker.Mock()
+    message.peer_id = group_id + settings.GROUP_ID_COEFFICIENT
+    assert get_group_id(message) == group_id
