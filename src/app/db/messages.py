@@ -1,8 +1,8 @@
-from sqlalchemy import Column, Integer, Text, String, DateTime
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.expression import delete, insert, select, update
-
 from datetime import datetime
+
+from sqlalchemy import Column, DateTime, Integer, String, Text
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.expression import insert
 
 from app.db.common import Base, db_connect
 
@@ -18,7 +18,13 @@ class Message(Base):
 
 
 @db_connect
-async def add_message(message: str | None, attachment: str | None, date: datetime, author: str, *, session: AsyncSession
+async def add_message(
+    message: str | None,
+    attachment: str | None,
+    date: datetime,
+    author: str,
+    *,
+    session: AsyncSession
 ) -> None:
     await session.execute(
         insert(Message),

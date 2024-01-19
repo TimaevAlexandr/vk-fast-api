@@ -6,6 +6,7 @@ from sqlalchemy.engine import Connection
 from app.db.common import Base, engine
 from app.db.groups import add_group
 
+
 @pytest.mark.asyncio
 @pytest.fixture()
 async def connection() -> AsyncGenerator[Connection, None]:

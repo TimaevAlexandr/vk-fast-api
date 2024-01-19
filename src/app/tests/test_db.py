@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.exc import DBAPIError
 
-from app.db.common import engine, db_connect
+from app.db.common import db_connect, engine
 from app.db.groups import (
     StudentGroup,
     add_group,
