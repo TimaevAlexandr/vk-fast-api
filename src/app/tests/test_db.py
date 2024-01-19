@@ -2,13 +2,12 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.exc import DBAPIError
 
-from app.db import (
+from app.db.common import engine, db_connect
+from app.db.groups import (
     StudentGroup,
     add_group,
     change_group_course,
-    db_connect,
     delete_group,
-    engine,
     get_course_by_group_id,
     get_group_ids_by_course,
     get_groups_ids,

@@ -3,8 +3,8 @@ from typing import AsyncGenerator
 import pytest
 from sqlalchemy.engine import Connection
 
-from app.db import Base, add_group, engine
-
+from app.db.common import Base, engine
+from app.db.groups import add_group
 
 @pytest.mark.asyncio
 @pytest.fixture()

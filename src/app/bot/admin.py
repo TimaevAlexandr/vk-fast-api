@@ -2,7 +2,7 @@ from vkbottle.bot import BotLabeler
 from vkbottle.user import Message
 
 from app.bot import messages
-from app.db import add_group, change_group_course, get_course_by_group_id
+from app.db.groups import add_group, change_group_course, get_course_by_group_id
 from app.utils import get_group_id, group_is_added, handle_course
 
 admin_labeler = BotLabeler()
