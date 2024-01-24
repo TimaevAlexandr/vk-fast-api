@@ -24,6 +24,7 @@ class StudentGroup(Base):  # type: ignore[valid-type,misc]
 
     id = Column(Integer, primary_key=True)
     course = Column(Integer, nullable=False)
+    faculty_id = Column(Integer, ForeignKey("faculty.id"), nullable=False)
     messages = relationship("GroupMessage")
 
 
@@ -53,7 +54,7 @@ async def get_groups_ids(*, session: AsyncSession) -> Iterable[int]:
 
 @db_connect
 async def add_group(
-    group_id: int, course: int, *, session: AsyncSession
+    group_id: int, course: int, faculty_id: int, *, session: AsyncSession
 ) -> None:
     await session.execute(
         insert(StudentGroup),  # type: ignore
@@ -61,6 +62,7 @@ async def add_group(
             {
                 "id": group_id,
                 "course": course,
+                "faculty": faculty_id,
             }
         ],
     )

@@ -1,7 +1,8 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Integer, String, Text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import insert
 
 from app.db.common import Base, db_connect
@@ -14,7 +15,8 @@ class Message(Base):  # type: ignore[valid-type,misc]
     message = Column(Text)
     attachment = Column(String)
     date = Column(DateTime, nullable=False)
-    author = Column(String, nullable=False)
+    admin_id = Column(Integer, ForeignKey("admin.id"), nullable=False)
+    admin = relationship("Admin")
 
 
 @db_connect
@@ -22,7 +24,7 @@ async def add_message(
     message: str | None,
     attachment: str | None,
     date: datetime,
-    author: str,
+    admin: int,
     *,
     session: AsyncSession
 ) -> None:
@@ -33,7 +35,7 @@ async def add_message(
                 "message": message,
                 "attachment": attachment,
                 "date": date,
-                "author": author,
+                "admin": admin,
             }
         ],
     )

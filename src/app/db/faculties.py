@@ -1,7 +1,6 @@
 from sqlalchemy import Column, Integer, Text
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship
-from sqlalchemy.sql.expression import select
+from sqlalchemy.sql.expression import insert, select
 
 from app.db.common import Base, db_connect
 
@@ -11,13 +10,21 @@ class Faculty(Base):  # type: ignore[valid-type,misc]
 
     id = Column(Integer, primary_key=True)
     name = Column(Text, nullable=False)
-    student_groups = relationship("StudentGroup", back_populates="faculty")
 
 
 @db_connect
-async def add_faculty(name: str, *, session: AsyncSession) -> None:
-    faculty = Faculty(name=name)
-    session.add(faculty)
+async def add_faculty(
+    faculty_id: int, name: str, *, session: AsyncSession
+) -> None:
+    await session.execute(
+        insert(Faculty),  # type: ignore
+        [
+            {
+                "id": faculty_id,
+                "name": name,
+            }
+        ],
+    )
     await session.commit()
 
 
