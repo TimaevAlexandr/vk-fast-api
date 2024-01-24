@@ -9,6 +9,7 @@ from app.db import (
     db_connect,
     delete_group,
     engine,
+    get_course_by_group_id,
     get_group_ids_by_course,
     get_groups_ids,
 )
@@ -36,6 +37,15 @@ async def test_ids_by_course(init_db):
     course = 2022
     await add_group(group_id, course)
     assert [group_id] == await get_group_ids_by_course(course)
+
+
+@pytest.mark.asyncio
+async def test_get_course_by_group_id(init_db):
+    group_id = 2
+    course = 2022
+    await add_group(group_id, course)
+    assert course == await get_course_by_group_id(group_id)
+    assert await get_course_by_group_id(3456) is None
 
 
 @pytest.mark.asyncio

@@ -77,6 +77,13 @@ async def sharing_text(message: Message) -> None:
         attachment=[_attachment] if _attachment else None,
     )
 
-    await message.answer(
-        f"Успешно отправлено!\n\n{get_results(broadcast_result)}"
-    )
+    if "+" in get_results(broadcast_result) and "-" not in get_results(
+        broadcast_result
+    ):
+        text_answer = "Рассылка успешно отправлена!"
+    elif "+" in get_results(broadcast_result):
+        text_answer = "Рассылка отправлена не полностью."
+    else:
+        text_answer = "Не удалось отправить рассылку."
+
+    await message.answer(f"{text_answer}\n\n{get_results(broadcast_result)}")

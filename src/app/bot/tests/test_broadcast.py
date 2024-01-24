@@ -21,7 +21,7 @@ def message_simple(mocker, attachment):
     msg.get_wall_attachment.return_value = [attachment]
     msg.fwd_messages = []
     msg.reply_message = None
-    msg.text = "рассылка: 1 text"
+    msg.text = "рассылка: 123 text"
     return msg
 
 
@@ -50,24 +50,90 @@ def message_with_fwd(mocker, message_simple):
         lf("message_with_fwd"),
     ),
 )
-async def test_sharing_successful(message: Message, mocker):
+@pytest.mark.parametrize(
+    "broadcast_result, expected_result",
+    [
+        (
+            (
+                (
+                    1,
+                    (True,),
+                ),
+                (
+                    2,
+                    (True,),
+                ),
+                (
+                    3,
+                    (True,),
+                ),
+            ),
+            "Рассылка успешно отправлена!\n\n"
+            "Курс 1: +\n"
+            "Курс 2: +\n"
+            "Курс 3: +",
+        ),
+        (
+            (
+                (
+                    1,
+                    (False,),
+                ),
+                (
+                    2,
+                    (False,),
+                ),
+                (
+                    3,
+                    (False,),
+                ),
+            ),
+            "Не удалось отправить рассылку.\n\n"
+            "Курс 1: -\n"
+            "Курс 2: -\n"
+            "Курс 3: -",
+        ),
+        (
+            (
+                (
+                    1,
+                    (False,),
+                ),
+                (
+                    2,
+                    (True,),
+                ),
+                (
+                    3,
+                    (True,),
+                ),
+            ),
+            "Рассылка отправлена не полностью.\n\n"
+            "Курс 1: -\n"
+            "Курс 2: +\n"
+            "Курс 3: +",
+        ),
+    ],
+)
+async def test_sharing_text(
+    message: Message,
+    broadcast_result: tuple[tuple[int, tuple[bool]]],
+    expected_result: str,
+    mocker,
+):
     mocker.patch("app.bot.broadcast.settings.ADMINS", [1])
-
     broadcast_mock = mocker.patch(
         "app.bot.broadcast.broadcast",
         new_callable=mocker.AsyncMock,
-        return_value=(
-            (
-                1,
-                (True,),
-            ),
-        ),
+        return_value=broadcast_result,
     )
 
     await sharing_text(message)
 
-    message.answer.assert_called_with("Успешно отправлено!\n\nКурс 1: +")
-    broadcast_mock.assert_called_with("1", text="text", attachment=["wall1_1"])
+    message.answer.assert_called_with(expected_result)
+    broadcast_mock.assert_called_with(
+        "123", text="text", attachment=["wall1_1"]
+    )
 
     message.answer.assert_awaited()
     broadcast_mock.assert_awaited()

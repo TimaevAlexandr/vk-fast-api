@@ -3,7 +3,9 @@ from hmac import compare_digest
 import pytest
 from fastapi.testclient import TestClient
 
+import app as App
 import settings
+from app.db import get_course_by_group_id
 from app.routes import app
 from app.vk import bot
 
@@ -119,7 +121,7 @@ async def test_callback_full_event(mocker, init_db, groups):
             mocker.call(
                 peer_ids=[1],
                 message=(
-                    "Успешно отправлено!\n\n"
+                    "Рассылка отправлена не полностью.\n\n"
                     "Курс 1: +\n"
                     "Курс 2: +\n"
                     "Курс 3: +\n"
@@ -127,5 +129,59 @@ async def test_callback_full_event(mocker, init_db, groups):
                 ),
                 random_id=0,
             ),
+        ]
+    )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "test_group_id, new_course_value, new_course_text",
+    [
+        (1, 3, App.bot.messages.EDITED_SUCCESSFULLY),
+        (2, 2, "Группе уже присвоен %(course)s курс"),
+    ],
+)
+async def test_fix_course_change(
+    mocker, init_db, groups, test_group_id, new_course_value, new_course_text
+):
+    peer_ids = test_group_id + settings.GROUP_ID_COEFFICIENT
+    client = TestClient(app)
+    data = {
+        "type": "message_new",
+        "group_id": test_group_id,
+        "object": {
+            "message": {
+                "from_id": 1,
+                "peer_id": (peer_ids),
+                "text": f"Изменить курс {new_course_value}",
+                "date": 0,
+                "id": 0,
+                "out": 0,
+            },
+            "client_info": {},
+        },
+    }
+    mocker.patch("app.bot.broadcast.settings.ADMINS", [1])
+    mocker.patch.object(bot, "api", autospec=True)
+    bot.api.messages.send = mocker.AsyncMock()
+    bot.api.messages.send.return_value = [1, 2, 3]
+    response = client.post(
+        "/api/callback",
+        json=data,
+    )
+
+    assert response.status_code == 200
+    assert response.text == "ok"
+    assert new_course_value == await get_course_by_group_id(
+        group_id=test_group_id
+    )
+
+    bot.api.messages.send.assert_has_awaits(
+        [
+            mocker.call(
+                peer_ids=[peer_ids],
+                message=new_course_text % {"course": new_course_value},
+                random_id=0,
+            )
         ]
     )
