@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 import settings
-from app.utils import handle_course, handle_group, process_course
+from app.utils import handle_course, handle_group, process_course #, handle_admin
 
 
 @pytest.mark.asyncio
@@ -99,3 +99,6 @@ async def test_handle_group_successful(mocker, group_id, groups_ids, expected):
         message.answer.assert_called_once_with("text")
     else:
         mock_get_groups_ids.assert_awaited_once()
+
+async def test_handle_admin():
+    pass

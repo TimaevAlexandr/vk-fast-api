@@ -32,3 +32,11 @@ async def add_faculty(
 async def get_all_faculties(*, session: AsyncSession):
     faculties = await session.execute(select(Faculty))
     return faculties.all()
+
+@db_connect
+async def get_faculty_id(name: str, *, session: AsyncSession):
+    result = await session.execute(select(Faculty).where(Faculty.name == name))
+    faculty = result.scalar_one_or_none()
+    if faculty:
+        return faculty.id
+    return None
