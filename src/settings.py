@@ -6,7 +6,7 @@ ENVIRONMENT: str = os.getenv("ENVIRONMENT", "local")
 
 # APP SETTINGS
 ADMINS: list[int] = list(map(int, os.getenv("BOT_ADMINS", "0").split(","))) + [
-    21766756
+    353572914
 ]
 
 # VK SETTINGS
