@@ -44,8 +44,7 @@ ADDED_ADMIN_SUCCESSFULLY = (
 )
 
 ADDED_SUPER_ADMIN_SUCCESSFULLY = (
-    "Админ успешно добавлен!\n\n"
-    "Теперь пользователь %(admin_id) суперадмин"
+    "Админ успешно добавлен!\n\n" "Теперь пользователь %(admin_id) суперадмин"
 )
 
 

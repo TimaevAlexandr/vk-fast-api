@@ -16,8 +16,8 @@ class GroupMessage(Base):  # type: ignore[valid-type,misc]
     )
     messages_id = Column(ForeignKey("messages.id"), primary_key=True)
     received = Column(Boolean, nullable=False)
-    message = relationship("Message")
 
+    message = relationship("Message", back_populates="group_messages")
 
 class StudentGroup(Base):  # type: ignore[valid-type,misc]
     __tablename__ = "student_groups"
@@ -27,6 +27,7 @@ class StudentGroup(Base):  # type: ignore[valid-type,misc]
     faculty_id = Column(Integer, ForeignKey("faculty.id"), nullable=False)
     messages = relationship("GroupMessage")
 
+    group_messages = relationship("GroupMessage", back_populates="message")
 
 @db_connect
 async def delete_group(group_id: int, *, session: AsyncSession) -> None:

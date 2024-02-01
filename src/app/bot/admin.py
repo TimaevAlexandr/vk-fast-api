@@ -2,9 +2,15 @@ from vkbottle.bot import BotLabeler
 from vkbottle.user import Message
 
 from app.bot import messages
-from app.db.groups import add_group, change_group_course
-from app.utils import handle_course, handle_group, handle_admin_id, handle_faculty
 from app.db.admins import add_admin
+from app.db.groups import add_group, change_group_course
+from app.utils import (
+    handle_admin_id,
+    handle_course,
+    handle_faculty,
+    handle_group,
+)
+
 
 admin_labeler = BotLabeler()
 admin_labeler.vbml_ignore_case = True
@@ -40,10 +46,12 @@ async def add(message: Message, course: str) -> None:
     await message.answer(messages.ADDED_SUCCESSFULLY % {"course": course})
     await message.answer(messages.WELCOME % {"course": course})
 
-#функционал для суперадмина
 
-@admin_labeler.message(text="Добавить админа <admin_id> <faculty>")
-async def add_faculty_admin(message: Message, admin_id: int, faculty: str) -> None:
+# функционал для суперадмина
+@admin_labeler.message(text="Создать администратора <admin_id> <faculty>")
+async def add_faculty_admin(
+    message: Message, admin_id: str, faculty: str
+) -> None:
     if not await handle_admin_id(message, admin_id):
         return
 
@@ -55,7 +63,13 @@ async def add_faculty_admin(message: Message, admin_id: int, faculty: str) -> No
         return
 
     await add_admin(admin_id, is_superuser, faculty_id)
+
     if not is_superuser:
-        await message.answer(messages.ADDED_ADMIN_SUCCESSFULLY % {"admin_id": admin_id, "faculty": faculty})
+        await message.answer(
+            messages.ADDED_ADMIN_SUCCESSFULLY
+            % {"admin_id": admin_id, "faculty": faculty}
+        )
     else:
-        await message.answer(messages.ADDED_SUPER_ADMIN_SUCCESSFULLY % {"admin_id": admin_id})
+        await message.answer(
+            messages.ADDED_SUPER_ADMIN_SUCCESSFULLY % {"admin_id": admin_id}
+        )
