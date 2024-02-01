@@ -1,17 +1,21 @@
 import pytest
+from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.exc import DBAPIError
 
 from app.db.common import db_connect, engine
 from app.db.groups import (
     StudentGroup,
+    GroupMessage,
     add_group,
     change_group_course,
     delete_group,
     get_course_by_group_id,
     get_group_ids_by_course,
     get_groups_ids,
+    connect_message_to_group,
 )
+from app.db.messages import Message
 from app.exceptions import DBError
 
 
@@ -21,13 +25,13 @@ async def test_add_group(init_db):
     course = 2021
     await add_group(group_id, course)
     async with engine.connect() as conn:
-        result = (
+        result_message = (
             await conn.execute(
                 select(StudentGroup).where(StudentGroup.id == group_id)
             )
         ).first()
-    assert result.id == group_id
-    assert result.course == course
+    assert result_message.id == group_id
+    assert result_message.course == course
 
 
 @pytest.mark.asyncio
@@ -54,12 +58,12 @@ async def test_delete_group(init_db):
     await add_group(group_id, course)
     await delete_group(group_id)
     async with engine.connect() as conn:
-        result = (
+        result_message = (
             await conn.execute(
                 select(StudentGroup).where(StudentGroup.id == group_id)
             )
         ).first()
-    assert result is None
+    assert result_message is None
 
 
 @pytest.mark.asyncio
@@ -78,12 +82,12 @@ async def test_change_group_course(init_db):
     new_course = 2026
     await change_group_course(group_id, new_course)
     async with engine.connect() as conn:
-        result = (
+        result_message = (
             await conn.execute(
                 select(StudentGroup).where(StudentGroup.id == group_id)
             )
         ).first()
-    assert result.course == new_course
+    assert result_message.course == new_course
 
 
 @pytest.mark.asyncio
@@ -117,3 +121,35 @@ async def test_db_connect_raises_unexpected_error(mocker, init_db):
 
     # Assert the expected logging call
     log_critical_mock.assert_called_with("Unexpected error")
+
+
+@pytest.mark.asyncio
+async def test_add_message(init_db):
+    group_id = 1
+    course = 1
+    await add_group(group_id, course)
+    message_id = 1
+    text = "hello world"
+    attachment = []
+    date = datetime.now()
+    author = 1
+    recieved = True
+    await connect_message_to_group(group_id, text, attachment, date, author, recieved)
+    async with engine.connect() as conn:
+        result_message = (
+            await conn.execute(
+                select(Message).where(Message.id == message_id)
+            )
+        ).first()
+        result_association = (
+            await conn.execute(
+                select(GroupMessage).where(GroupMessage.student_groups_id == group_id)
+            )
+        ).first()
+    assert result_message.text == text
+    assert result_message.attachment == attachment
+    assert result_message.date == date
+    assert result_message.author == author
+    assert result_association.messages_id == message_id
+    assert result_association.received == recieved
+
