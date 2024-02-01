@@ -1,12 +1,17 @@
 import asyncio
 import logging
 from typing import Coroutine
+from datetime import datetime
 
 import aiohttp
 from vkbottle import VKAPIError
 
 import settings
-from app.db.groups import delete_group, get_group_ids_by_course
+from app.db.groups import (
+    delete_group,
+    get_group_ids_by_course,
+    connect_message_to_group,
+)
 from app.exceptions import DBError
 from app.vk import bot
 
@@ -36,7 +41,10 @@ async def group_broadcast(
 
 
 async def course_broadcast(
-    course: int, text: str | None, attachment: list | None
+    course: int,
+    from_id: int,
+    text: str | None,
+    attachment: list | None,
 ) -> tuple[int, tuple[bool]]:
     try:
         ids = await get_group_ids_by_course(course)
@@ -51,11 +59,13 @@ async def course_broadcast(
     for group in ids:
         res = await group_broadcast(group, text, attachment)
         result.append(res)
+        await connect_message_to_group(group, text, attachment, datetime.now(), from_id, res)
     return course, tuple(result)  # type: ignore[return-value]
 
 
 async def broadcast(
     courses: str,
+    from_id: int,
     text: str | None = None,
     attachment: list | None = None,
 ) -> tuple[tuple[int, tuple[bool]]] | None:
@@ -64,6 +74,8 @@ async def broadcast(
         return None
     coroutines: list[Coroutine] = []
     for course in sorted(set(courses)):
-        coroutines.append(course_broadcast(int(course), text, attachment))
+        coroutines.append(
+            course_broadcast(int(course), from_id, text, attachment)
+        )
     done = await asyncio.gather(*coroutines)
     return tuple(done)  # type: ignore[return-value]

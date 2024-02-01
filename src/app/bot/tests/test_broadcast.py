@@ -132,7 +132,7 @@ async def test_sharing_text(
 
     message.answer.assert_called_with(expected_result)
     broadcast_mock.assert_called_with(
-        "123", text="text", attachment=["wall1_1"]
+        "123", 1, text="text", attachment=["wall1_1"]
     )
 
     message.answer.assert_awaited()

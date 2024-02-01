@@ -101,6 +101,7 @@ async def test_course_broadcast_empty(mocker):
     course = 2023
     text = "hello world!"
     attachment = ["123"]
+    from_id = 1
 
     mocker.patch.object(bot, "api", autospec=True)
 
@@ -109,7 +110,7 @@ async def test_course_broadcast_empty(mocker):
     )
     get_group_ids_by_course_mock.return_value = []
 
-    result = await course_broadcast(course, text, attachment)
+    result = await course_broadcast(course, from_id, text, attachment)
 
     assert result == (course, (False,))
     get_group_ids_by_course_mock.assert_awaited()
@@ -123,6 +124,7 @@ async def test_course_broadcast_exception(mocker):
     course = 2023
     text = "hello world!"
     attachment = ["123"]
+    from_id = 1
 
     mocker.patch.object(bot, "api", autospec=True)
 
@@ -131,7 +133,7 @@ async def test_course_broadcast_exception(mocker):
         "app.broadcast.get_group_ids_by_course", new_callable=AsyncMock
     ).side_effect = error
 
-    result = await course_broadcast(course, text, attachment)
+    result = await course_broadcast(course, from_id, text, attachment)
 
     assert result == (course, (False,))
     log_mock.assert_called_with(error)
@@ -142,6 +144,7 @@ async def test_course_broadcast_successful(mocker):
     course = 2023
     text = "hello world!"
     attachment = ["123"]
+    from_id = 1
 
     mocker.patch.object(bot, "api", autospec=True)
 
@@ -155,7 +158,7 @@ async def test_course_broadcast_successful(mocker):
     )
     group_broadcast_mock.return_value = True
 
-    result = await course_broadcast(course, text, attachment)
+    result = await course_broadcast(course, from_id, text, attachment)
 
     assert result == (course, (True,) * 3)
     get_group_ids_by_course_mock.assert_awaited()
@@ -163,9 +166,9 @@ async def test_course_broadcast_successful(mocker):
     group_broadcast_mock.assert_awaited()
     group_broadcast_mock.assert_has_awaits(
         [
-            mocker.call(1, text, attachment),
-            mocker.call(2, text, attachment),
-            mocker.call(3, text, attachment),
+            mocker.call(1, 1, text, attachment),
+            mocker.call(2, 1, text, attachment),
+            mocker.call(3, 1, text, attachment),
         ]
     )
 
@@ -175,6 +178,7 @@ async def test_broadcast_empty(mocker):
     courses = "2023"
     text = "hello world!"
     attachment = ["123"]
+    from_id = 1
 
     mocker.patch.object(bot, "api", autospec=True)
 
@@ -183,15 +187,15 @@ async def test_broadcast_empty(mocker):
     )
     course_broadcast_mock.return_value = (False,)
 
-    result = await broadcast(courses, text, attachment)
+    result = await broadcast(courses, from_id, text, attachment)
 
     assert result == ((False,),) * 3
     course_broadcast_mock.assert_awaited()
     course_broadcast_mock.assert_has_awaits(
         [
-            mocker.call(0, text, attachment),
-            mocker.call(2, text, attachment),
-            mocker.call(3, text, attachment),
+            mocker.call(0, from_id, text, attachment),
+            mocker.call(2, from_id, text, attachment),
+            mocker.call(3, from_id, text, attachment),
         ]
     )
 
@@ -201,6 +205,7 @@ async def test_broadcast_successful(mocker):
     courses = "2023"
     text = "hello world!"
     attachment = ["123"]
+    from_id = 1
 
     mocker.patch.object(bot, "api", autospec=True)
 
@@ -209,15 +214,15 @@ async def test_broadcast_successful(mocker):
     )
     course_broadcast_mock.return_value = (True,)
 
-    result = await broadcast(courses, text, attachment)
+    result = await broadcast(courses, from_id, text, attachment)
 
     assert result == ((True,),) * 3
     course_broadcast_mock.assert_awaited()
     course_broadcast_mock.assert_has_awaits(
         [
-            mocker.call(0, text, attachment),
-            mocker.call(2, text, attachment),
-            mocker.call(3, text, attachment),
+            mocker.call(0, from_id, text, attachment),
+            mocker.call(2, from_id, text, attachment),
+            mocker.call(3, from_id, text, attachment),
         ]
     )
 
@@ -227,8 +232,9 @@ async def test_broadcast_not_numeric_error(mocker):
     courses = "qwe"
     text = "hello world!"
     attachment = ["123"]
+    from_id = 1
 
     log_mock = mocker.patch("app.broadcast.logger.error")
-    result = await broadcast(courses, text, attachment)
+    result = await broadcast(courses, from_id, text, attachment)
     assert not result
     log_mock.assert_called_with("Courses is not numeric")
