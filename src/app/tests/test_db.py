@@ -15,7 +15,7 @@ from app.db.groups import (
     get_groups_ids,
     connect_message_to_group,
 )
-from app.db.messages import Message
+from app.db.messages import add_message, Message
 from app.exceptions import DBError
 
 
@@ -134,7 +134,8 @@ async def test_add_message(init_db):
     date = datetime.now()
     author = 1
     recieved = True
-    await connect_message_to_group(group_id, text, attachment, date, author, recieved)
+    message: Message = await add_message(text, attachment, date, author)
+    await connect_message_to_group(group_id, message, recieved)
     async with engine.connect() as conn:
         result_message = (
             await conn.execute(
@@ -152,4 +153,3 @@ async def test_add_message(init_db):
     assert result_message.author == author
     assert result_association.messages_id == message_id
     assert result_association.received == recieved
-

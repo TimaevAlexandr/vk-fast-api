@@ -1,4 +1,5 @@
 import asyncio
+from email import message
 import logging
 from typing import Coroutine
 from datetime import datetime
@@ -12,6 +13,7 @@ from app.db.groups import (
     get_group_ids_by_course,
     connect_message_to_group,
 )
+from app.db.messages import add_message, Message
 from app.exceptions import DBError
 from app.vk import bot
 
@@ -56,10 +58,11 @@ async def course_broadcast(
         return course, (False,)
 
     result: list[bool] = []
+    message: Message = await add_message(text, attachment, datetime.now(), from_id)
     for group in ids:
         res = await group_broadcast(group, text, attachment)
         result.append(res)
-        await connect_message_to_group(group, text, attachment, datetime.now(), from_id, res)
+        await connect_message_to_group(group, message, res)
     return course, tuple(result)  # type: ignore[return-value]
 
 

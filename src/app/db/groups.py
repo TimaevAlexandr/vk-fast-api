@@ -7,7 +7,7 @@ from sqlalchemy.orm import relationship, selectinload
 from sqlalchemy.sql.expression import delete, insert, select, update
 
 from app.db.common import Base, db_connect
-from app.db.messages import add_message
+from app.db.messages import Message
 
 
 class StudentGroup(Base):  # type: ignore[valid-type,misc]
@@ -32,10 +32,7 @@ class GroupMessage(Base):  # type: ignore[valid-type,misc]
 @db_connect
 async def connect_message_to_group(
     group_id: int,
-    text: str | None,
-    attachment: list | None,
-    date: datetime,
-    author: int,
+    message: Message,
     received: bool,
     *,
     session: AsyncSession,
@@ -48,7 +45,7 @@ async def connect_message_to_group(
         ),
     )
     association = GroupMessage(received=received)
-    association.message = await add_message(text, attachment, date, author)
+    association.message = message
     group.messages.append(association)
 
     await session.commit()
