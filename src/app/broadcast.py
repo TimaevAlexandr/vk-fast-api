@@ -1,5 +1,4 @@
 import asyncio
-from email import message
 import logging
 from typing import Coroutine
 from datetime import datetime
