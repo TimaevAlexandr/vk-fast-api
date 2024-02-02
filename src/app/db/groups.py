@@ -1,11 +1,21 @@
 from typing import Iterable
+from datetime import datetime
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, Boolean
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, selectinload
 from sqlalchemy.sql.expression import delete, insert, select, update
 
 from app.db.common import Base, db_connect
+from app.db.messages import add_message
+
+
+class StudentGroup(Base):  # type: ignore[valid-type,misc]
+    __tablename__ = "student_groups"
+
+    id = Column(Integer, primary_key=True)
+    course = Column(Integer, nullable=False)
+    messages = relationship("GroupMessage")
 
 
 class GroupMessage(Base):  # type: ignore[valid-type,misc]
@@ -19,13 +29,29 @@ class GroupMessage(Base):  # type: ignore[valid-type,misc]
 
     message = relationship("Message", back_populates="group_messages")
 
-class StudentGroup(Base):  # type: ignore[valid-type,misc]
-    __tablename__ = "student_groups"
+@db_connect
+async def connect_message_to_group(
+    group_id: int,
+    text: str | None,
+    attachment: list | None,
+    date: datetime,
+    author: int,
+    received: bool,
+    *,
+    session: AsyncSession,
+) -> None:
+    group = await session.scalar(
+        select(StudentGroup)
+        .where(StudentGroup.id == group_id)
+        .options(
+            selectinload(StudentGroup.messages),
+        ),
+    )
+    association = GroupMessage(received=received)
+    association.message = await add_message(text, attachment, date, author)
+    group.messages.append(association)
 
-    id = Column(Integer, primary_key=True)
-    course = Column(Integer, nullable=False)
-    faculty_id = Column(Integer, ForeignKey("faculty.id"), nullable=False)
-    messages = relationship("GroupMessage")
+    await session.commit()
 
     group_messages = relationship("GroupMessage", back_populates="message")
 

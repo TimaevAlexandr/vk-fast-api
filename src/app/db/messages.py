@@ -1,9 +1,16 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Integer,
+    PickleType,
+    Text,
+    ForeignKey
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql.expression import insert
+from sqlalchemy.orm import relationship
 
 from app.db.common import Base, db_connect
 
@@ -12,31 +19,25 @@ class Message(Base):  # type: ignore[valid-type,misc]
     __tablename__ = "messages"
 
     id = Column(Integer, primary_key=True)
-    message = Column(Text)
-    attachment = Column(String)
+    text = Column(Text)
+    attachment = Column(PickleType)
     date = Column(DateTime, nullable=False)
-    admin_id = Column(Integer, ForeignKey("admin.id"), nullable=False)
+    author = Column(Integer, ForeignKey("admin.id"), nullable=False)
     admin = relationship("Admin")
 
 
 @db_connect
 async def add_message(
-    message: str | None,
-    attachment: str | None,
+    text: str | None,
+    attachment: list | None,
     date: datetime,
-    admin: int,
+    author: str,
     *,
-    session: AsyncSession
-) -> None:
-    await session.execute(
-        insert(Message),  # type: ignore
-        [
-            {
-                "message": message,
-                "attachment": attachment,
-                "date": date,
-                "admin": admin,
-            }
-        ],
+    session: AsyncSession,
+) -> Message:
+    message = Message(
+        text=text, attachment=attachment, date=date, author=author
     )
+    session.add(message)
     await session.commit()
+    return message
