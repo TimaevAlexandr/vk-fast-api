@@ -22,8 +22,8 @@ class Message(Base):  # type: ignore[valid-type,misc]
     text = Column(Text)
     attachment = Column(PickleType)
     date = Column(DateTime, nullable=False)
-    author = Column(Integer, ForeignKey("admin.id"), nullable=False)
-    admin = relationship("Admin")
+    author = Column(Integer, ForeignKey("admins.id"), nullable=False)
+    admins = relationship("Admin")
 
 
 @db_connect

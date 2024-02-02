@@ -4,7 +4,7 @@ from vkbottle.user import Message
 
 import settings
 from settings import ADMINS
-from app.db.admins import get_all_admins, get_all_superusers
+from app.db.admins import get_all_admins, get_all_superusers, add_admin, Admin
 from app.db.faculties import get_faculty_id
 from app.db.groups import get_groups_ids
 
@@ -70,29 +70,19 @@ async def handle_faculty(
     if faculty == "суперадмин":
         return None, None, True
 
-    elif faculty in (
-        "РТС",
-        "ИКСС",
-        "ИСиТ",
-        "ФФП",
-        "ЦЭУБИ",
-        "СЦТ",
-        "ИНО",
-        "ИМ",
-        "СПБКТ",
-        "ВУЦ",
-    ):
-        faculty_id = get_faculty_id(faculty)
-        is_superuser = False
-        return faculty_id, None, is_superuser
-
     else:
-        await message.answer(text)
-        return None, text, None
+        faculty_id = await get_faculty_id(faculty)
+        if faculty_id:
+            is_superuser = False
+            return faculty_id, None, is_superuser
+        else:
+            await message.answer(text)
+            return None, text, None
 
 
 async def handle_admin_id(message: Message, admin_id: str) -> int | bool:
     super_admins = await get_all_superusers() + ADMINS
+    
     if (message.from_id not in super_admins):
         await message.answer("Не достаточно прав")
         return False
@@ -104,9 +94,9 @@ async def handle_admin_id(message: Message, admin_id: str) -> int | bool:
         return False
 
     admin_id_int = int(extract_id(admin_id))
-
     all_admins = await get_all_admins()
-    if any(admin_id_int == admin.id for admin in all_admins):
+    
+    if any(hasattr(admin, 'id') and admin_id_int == admin.id for admin in all_admins):
         await message.answer("Такой админ уже существует!")
         return False
 

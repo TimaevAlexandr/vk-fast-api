@@ -26,8 +26,8 @@ class GroupMessage(Base):  # type: ignore[valid-type,misc]
     )
     messages_id = Column(ForeignKey("messages.id"), primary_key=True)
     received = Column(Boolean, nullable=False)
+    message = relationship("Message")
 
-    message = relationship("Message", back_populates="group_messages")
 
 @db_connect
 async def connect_message_to_group(
@@ -53,7 +53,6 @@ async def connect_message_to_group(
 
     await session.commit()
 
-    group_messages = relationship("GroupMessage", back_populates="message")
 
 @db_connect
 async def delete_group(group_id: int, *, session: AsyncSession) -> None:
@@ -81,7 +80,7 @@ async def get_groups_ids(*, session: AsyncSession) -> Iterable[int]:
 
 @db_connect
 async def add_group(
-    group_id: int, course: int, faculty_id: int, *, session: AsyncSession
+    group_id: int, course: int, *, session: AsyncSession
 ) -> None:
     await session.execute(
         insert(StudentGroup),  # type: ignore
@@ -89,7 +88,6 @@ async def add_group(
             {
                 "id": group_id,
                 "course": course,
-                "faculty": faculty_id,
             }
         ],
     )

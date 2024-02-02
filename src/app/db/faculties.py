@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Text
+from sqlalchemy import Column, Integer, Text, Sequence
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import insert, select
 
@@ -8,7 +8,7 @@ from app.db.common import Base, db_connect
 class Faculty(Base):  # type: ignore[valid-type,misc]
     __tablename__ = "faculty"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, Sequence('faculty_id_seq'), primary_key=True, nullable=False)
     name = Column(Text, nullable=False)
 
 

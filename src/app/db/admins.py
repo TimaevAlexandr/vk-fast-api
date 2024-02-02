@@ -6,7 +6,7 @@ from app.db.common import Base, db_connect
 
 
 class Admin(Base):  # type: ignore[valid-type,misc]
-    __tablename__ = "admin"
+    __tablename__ = "admins"
 
     id = Column(Integer, primary_key=True)
     is_superuser = Column(Boolean, nullable=False)
