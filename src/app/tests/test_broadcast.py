@@ -166,9 +166,9 @@ async def test_course_broadcast_successful(mocker):
     group_broadcast_mock.assert_awaited()
     group_broadcast_mock.assert_has_awaits(
         [
-            mocker.call(1, 1, text, attachment),
-            mocker.call(2, 1, text, attachment),
-            mocker.call(3, 1, text, attachment),
+            mocker.call(1, text, attachment),
+            mocker.call(2, text, attachment),
+            mocker.call(3, text, attachment),
         ]
     )
 
