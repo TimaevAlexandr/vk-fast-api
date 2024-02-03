@@ -1,7 +1,6 @@
 import asyncio
 import logging
 from typing import Coroutine
-from datetime import datetime
 
 import aiohttp
 from vkbottle import VKAPIError
@@ -57,7 +56,7 @@ async def course_broadcast(
         return course, (False,)
 
     result: list[bool] = []
-    message: Message = await add_message(text, attachment, datetime.now(), from_id)
+    message: Message = await add_message(text, attachment, from_id)
     for group in ids:
         res = await group_broadcast(group, text, attachment)
         result.append(res)

@@ -131,10 +131,10 @@ async def test_add_message(init_db):
     message_id = 1
     text = "hello world"
     attachment = []
-    date = datetime.now()
     author = 1
+    date = datetime.now()
     recieved = True
-    message: Message = await add_message(text, attachment, date, author)
+    message: Message = await add_message(text, attachment, author, date)
     await connect_message_to_group(group_id, message, recieved)
     async with engine.connect() as conn:
         result_message = (

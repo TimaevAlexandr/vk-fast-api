@@ -19,8 +19,8 @@ class Message(Base):  # type: ignore[valid-type,misc]
     id = Column(Integer, primary_key=True)
     text = Column(Text)
     attachment = Column(PickleType)
-    date = Column(DateTime, nullable=False)
     author = Column(Integer, nullable=False)
+    date = Column(DateTime, nullable=False, default=datetime.now)
     groups = relationship("GroupMessage")
 
 
@@ -28,13 +28,16 @@ class Message(Base):  # type: ignore[valid-type,misc]
 async def add_message(
     text: str | None,
     attachment: list | None,
-    date: datetime,
     author: int,
+    date: datetime | None = None,
     *,
     session: AsyncSession,
 ) -> Message:
     message = Message(
-        text=text, attachment=attachment, date=date, author=author
+        text=text,
+        attachment=attachment,
+        author=author,
+        date=date,
     )
     session.add(message)
     await session.commit()
