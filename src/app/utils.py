@@ -3,10 +3,10 @@ import re
 from vkbottle.user import Message
 
 import settings
-from settings import ADMINS
-from app.db.admins import get_all_admins, get_all_superusers, add_admin, Admin
+from app.db.admins import get_all_admins, get_all_superusers, Admin
 from app.db.faculties import get_faculty_id
 from app.db.groups import get_groups_ids
+from settings import ADMINS
 
 
 def is_valid_id_format(input_string):
@@ -80,10 +80,10 @@ async def handle_faculty(
             return None, text, None
 
 
-async def handle_admin_id(message: Message, admin_id: str) -> int | bool:
+async def handle_admin_id(message: Message, admin_id: str, need_in_table: bool) -> int | bool:
     super_admins = await get_all_superusers() + ADMINS
-    
-    if (message.from_id not in super_admins):
+
+    if message.from_id not in super_admins:
         await message.answer("Не достаточно прав")
         return False
 
@@ -94,10 +94,12 @@ async def handle_admin_id(message: Message, admin_id: str) -> int | bool:
         return False
 
     admin_id_int = int(extract_id(admin_id))
-    all_admins = await get_all_admins()
     
-    if any(hasattr(admin, 'id') and admin_id_int == admin.id for admin in all_admins):
-        await message.answer("Такой админ уже существует!")
-        return False
+    if not need_in_table: # если необходимо условие что такой не должен быть в таблице
+        all_admins: list[Admin] = await get_all_admins()
+
+        if any(int(admin.id) == admin_id_int for admin in all_admins):
+            await message.answer("Такой админ уже существует!")
+            return False
 
     return admin_id_int

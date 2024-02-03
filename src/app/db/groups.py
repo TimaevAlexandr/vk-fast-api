@@ -1,20 +1,22 @@
-from typing import Iterable
 from datetime import datetime
+from typing import Iterable
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, Boolean
+from sqlalchemy import Boolean, Column, ForeignKey, Integer
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, selectinload
 from sqlalchemy.sql.expression import delete, insert, select, update
 
 from app.db.common import Base, db_connect
 from app.db.messages import add_message
-
+from app.db.faculties import Faculty
 
 class StudentGroup(Base):  # type: ignore[valid-type,misc]
     __tablename__ = "student_groups"
 
     id = Column(Integer, primary_key=True)
     course = Column(Integer, nullable=False)
+    faculty_id = Column(Integer, ForeignKey("faculty.id"), nullable=False)
+    faculty = relationship("Faculty")
     messages = relationship("GroupMessage")
 
 
@@ -80,7 +82,7 @@ async def get_groups_ids(*, session: AsyncSession) -> Iterable[int]:
 
 @db_connect
 async def add_group(
-    group_id: int, course: int, *, session: AsyncSession
+    group_id: int, course: int, faculty_id: int, *, session: AsyncSession
 ) -> None:
     await session.execute(
         insert(StudentGroup),  # type: ignore
@@ -88,6 +90,7 @@ async def add_group(
             {
                 "id": group_id,
                 "course": course,
+                "faculty_id": faculty_id,
             }
         ],
     )

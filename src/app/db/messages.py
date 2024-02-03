@@ -1,15 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import (
-    Column,
-    DateTime,
-    Integer,
-    PickleType,
-    Text,
-    ForeignKey
-)
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, PickleType, Text
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship
 from sqlalchemy.orm import relationship
 
 from app.db.common import Base, db_connect

@@ -1,18 +1,19 @@
-import pytest
 from datetime import datetime
+
+import pytest
 from sqlalchemy import select
 from sqlalchemy.exc import DBAPIError
 
 from app.db.common import db_connect, engine
 from app.db.groups import (
-    StudentGroup,
     GroupMessage,
+    StudentGroup,
     add_group,
     change_group_course,
+    connect_message_to_group,
     delete_group,
     get_group_ids_by_course,
     get_groups_ids,
-    connect_message_to_group,
 )
 from app.db.messages import (  # with - 5 not passed. without - 13 not passed
     Message,
@@ -32,9 +33,9 @@ async def test_add_group(init_db):
                 select(StudentGroup).where(StudentGroup.id == group_id)
             )
         ).first()
-    assert result.id == group_id
-    assert result.course == course
-    assert result.faculty_id == faculty_id
+    assert result_message.id == group_id
+    assert result_message.course == course
+    assert result_message.faculty_id == faculty_id
 
 
 @pytest.mark.asyncio
@@ -130,23 +131,26 @@ async def test_db_connect_raises_unexpected_error(mocker, init_db):
 async def test_add_message(init_db):
     group_id = 1
     course = 1
-    await add_group(group_id, course)
+    faculty_id = 1
+    await add_group(group_id, course, faculty_id)
     message_id = 1
     text = "hello world"
     attachment = []
     date = datetime.now()
     author = 1
     recieved = True
-    await connect_message_to_group(group_id, text, attachment, date, author, recieved)
+    await connect_message_to_group(
+        group_id, text, attachment, date, author, recieved
+    )
     async with engine.connect() as conn:
         result_message = (
-            await conn.execute(
-                select(Message).where(Message.id == message_id)
-            )
+            await conn.execute(select(Message).where(Message.id == message_id))
         ).first()
         result_association = (
             await conn.execute(
-                select(GroupMessage).where(GroupMessage.student_groups_id == group_id)
+                select(GroupMessage).where(
+                    GroupMessage.student_groups_id == group_id
+                )
             )
         ).first()
     assert result_message.text == text
@@ -155,4 +159,3 @@ async def test_add_message(init_db):
     assert result_message.author == author
     assert result_association.messages_id == message_id
     assert result_association.received == recieved
-

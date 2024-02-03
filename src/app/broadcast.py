@@ -1,16 +1,16 @@
 import asyncio
 import logging
-from typing import Coroutine
 from datetime import datetime
+from typing import Coroutine
 
 import aiohttp
 from vkbottle import VKAPIError
 
 import settings
 from app.db.groups import (
+    connect_message_to_group,
     delete_group,
     get_group_ids_by_course,
-    connect_message_to_group,
 )
 from app.exceptions import DBError
 from app.vk import bot
@@ -59,7 +59,9 @@ async def course_broadcast(
     for group in ids:
         res = await group_broadcast(group, text, attachment)
         result.append(res)
-        await connect_message_to_group(group, text, attachment, datetime.now(), from_id, res)
+        await connect_message_to_group(
+            group, text, attachment, datetime.now(), from_id, res
+        )
     return course, tuple(result)  # type: ignore[return-value]
 
 
