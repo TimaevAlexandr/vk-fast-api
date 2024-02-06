@@ -6,19 +6,24 @@ from vkbottle.user import Message
 
 import settings
 from app.broadcast import broadcast
+from app.db.admins import get_all_admins
 
 logger = logging.getLogger(__name__)
 
 broadcast_labeler = BotLabeler()
 broadcast_labeler.vbml_ignore_case = True
 
-regex = r"[Рр]ассылка: (\d+)[ ]?(.*)"
+
+regex = r"[Рр]ассылка:\s*((?:\d+\s*)+)\s*(?:([А-Яа-я\s]+))?\.\s*([\s\S]*)$"
+regex_all = r"[Рр]ассылка:\s*всем\s*\.\s*([\s\S]*)"
 
 
 def get_results(broadcast_result):
+    if not broadcast_result:
+        return None
     results = []
-    for course, course_result in broadcast_result:
-        course_arr = [f"Курс {course}:"]
+    for course, course_result, faculty_name in broadcast_result:
+        course_arr = [f"Курс {course} факультет {faculty_name}:"]
         for group in course_result:
             if group:
                 course_arr.append("+")
@@ -49,20 +54,37 @@ def get_attachments(message: Message) -> str | None:
     return None
 
 
-def parse_text(message: Message) -> tuple[str, str | None]:
+def parse_text(message: Message) -> tuple[str, str | None, str]:
     res = re.match(regex, message.text)
-    if not res:
+    res_all = re.match(regex_all, message.text)
+    if not res and not res_all:
         raise ValueError("Wrong regex text")
-    (courses, text) = res.groups()
-    return courses, text
+    elif not res:
+        courses = "всем"
+        faculties = ""
+        text = res_all.group(1)  # type: ignore
+    elif not res_all:
+        courses, faculties, text = res.groups()
+    else:
+        raise ValueError("Wrong regex text")
+    return (
+        courses.strip(),
+        faculties.strip() if faculties else None,
+        text.strip(),
+    )
 
 
 @broadcast_labeler.message(regex=regex)
+@broadcast_labeler.message(regex=regex_all)
 async def sharing_text(message: Message) -> None:
-    if message.from_id not in settings.ADMINS:
+    all_admins = [
+        admin.id for admin in await get_all_admins()
+    ] + settings.ADMINS
+    print(*all_admins)
+    if message.from_id not in all_admins:
         return
 
-    courses, text = parse_text(message)
+    courses, faculties, text = parse_text(message)
 
     _text = get_text(message, text)
     _attachment = get_attachments(message)
@@ -73,18 +95,20 @@ async def sharing_text(message: Message) -> None:
 
     broadcast_result = await broadcast(
         courses,
+        faculties,
         message.from_id,
         text=_text,
         attachment=[_attachment] if _attachment else None,
     )
-
-    if "+" in get_results(broadcast_result) and "-" not in get_results(
-        broadcast_result
-    ):
-        text_answer = "Рассылка успешно отправлена!"
-    elif "+" in get_results(broadcast_result):
-        text_answer = "Рассылка отправлена не полностью."
+    if broadcast_result:
+        if "+" in get_results(broadcast_result) and "-" not in get_results(
+            broadcast_result
+        ):
+            text_answer = "Рассылка успешно отправлена!"
+        elif "+" in get_results(broadcast_result):
+            text_answer = "Рассылка отправлена не полностью."
+        else:
+            text_answer = "Не удалось отправить рассылку."
     else:
         text_answer = "Не удалось отправить рассылку."
-
     await message.answer(f"{text_answer}\n\n{get_results(broadcast_result)}")

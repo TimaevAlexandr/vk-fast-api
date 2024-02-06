@@ -1,8 +1,9 @@
+from typing import Iterable
+
 from sqlalchemy import Boolean, Column, ForeignKey, Integer
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.expression import insert, select, delete
+from sqlalchemy.sql.expression import delete, insert, select
 
-from typing import Iterable
 from app.db.common import Base, db_connect
 
 
@@ -36,20 +37,33 @@ async def add_admin(
 
 
 @db_connect
-async def get_all_admins(*, session: AsyncSession) -> Iterable[Admin]:
+async def get_all_admins(*, session: AsyncSession) -> Iterable[Admin] | None:
     statement = select(Admin)
     result = await session.execute(statement)
     admins = result.scalars().all()
-    return admins
+    return admins  # type: ignore
 
 
 @db_connect
-async def get_all_superusers(*, session: AsyncSession) -> Iterable[Admin]:
+async def get_all_superusers(
+    *, session: AsyncSession
+) -> Iterable[Admin] | None:
     superusers = await session.execute(select(Admin).where(Admin.is_superuser))
-    return superusers.all()
+    return superusers.all()  # type: ignore
+
 
 @db_connect
 async def delete_admin(admin_id: int, *, session: AsyncSession) -> None:
     statement = delete(Admin).where(Admin.id == admin_id)
     await session.execute(statement)
     await session.commit()
+
+
+@db_connect
+async def get_admin_by_id(
+    admin_id: int, *, session: AsyncSession
+) -> Admin | None:
+    admin = await session.execute(
+        select(Admin).where(Admin.id == int(admin_id))
+    )
+    return admin  # type: ignore

@@ -1,21 +1,21 @@
 from datetime import datetime
 from typing import Iterable
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, selectinload
 from sqlalchemy.sql.expression import delete, insert, select, update
 
 from app.db.common import Base, db_connect
 from app.db.messages import add_message
-from app.db.faculties import Faculty
+
 
 class StudentGroup(Base):  # type: ignore[valid-type,misc]
     __tablename__ = "student_groups"
 
     id = Column(Integer, primary_key=True)
     course = Column(Integer, nullable=False)
-    faculty_id = Column(Integer, ForeignKey("faculty.id"), nullable=False)
+    faculty_id = Column(Integer, ForeignKey("faculty.id"), nullable=True)
     faculty = relationship("Faculty")
     messages = relationship("GroupMessage")
 
@@ -75,9 +75,19 @@ async def get_group_ids_by_course(
 
 
 @db_connect
-async def get_groups_ids(*, session: AsyncSession) -> Iterable[int]:
-    group_ids = (await session.execute(select(StudentGroup))).all()
+async def get_group_ids_by_faculty_id(
+    faculty_id: int, *, session: AsyncSession
+) -> Iterable[int]:
+    group_ids = await session.execute(
+        select(StudentGroup).where(StudentGroup.faculty_id == faculty_id)
+    )
     return [group_id[0].id for group_id in group_ids]
+
+
+@db_connect
+async def get_groups_ids(*, session: AsyncSession) -> Iterable[int]:
+    groups = (await session.execute(select(StudentGroup))).all()
+    return [group[0].id for group in groups if group[0].course != -1]
 
 
 @db_connect
@@ -107,3 +117,18 @@ async def change_group_course(
         .values(course=course)
     )
     await session.commit()
+
+
+@db_connect
+async def get_group_ids_by_course_faculty_id(
+    course: int, faculty_id: int, *, session: AsyncSession
+) -> list[int]:
+    group_ids = await session.execute(
+        select(StudentGroup.id).where(
+            and_(
+                StudentGroup.course == course,
+                StudentGroup.faculty_id == faculty_id,
+            )
+        )
+    )
+    return [group_id[0] for group_id in group_ids]

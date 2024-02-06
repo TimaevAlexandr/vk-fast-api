@@ -9,8 +9,8 @@ from app.utils import (
     handle_course,
     handle_faculty,
     handle_group,
+    parse_add_regex,
 )
-
 
 admin_labeler = BotLabeler()
 admin_labeler.vbml_ignore_case = True
@@ -30,38 +30,51 @@ async def change_course(message: Message, course: str) -> None:
     await message.answer(messages.EDITED_SUCCESSFULLY % {"course": course})
 
 
-@admin_labeler.message(text="Добавить <course> <faculty>")
-async def add(message: Message, course: str, faculty: str) -> None:
-    if not await handle_course(message, course):
+add_regex = r"^Добавить (\S+)(?:\s*([^\[\]]+))?$"
+
+
+@admin_labeler.message(regex=add_regex)
+async def add(message: Message) -> None:
+    course, faculty = parse_add_regex(message)
+
+    _course = await handle_course(message, course)  # type: ignore
+    if not _course:
         return
 
     group_id, err = await handle_group(
         message, "Ваша беседа уже есть в списке"
     )
-    
-    if err:
-        return
-    
-    faculty_id, err, is_superuser = await handle_faculty(
-        message, f"Факультет {faculty} не найден", faculty
-    )
+
     if err:
         return
 
-    await add_group(group_id, int(course), faculty_id)
+    if faculty:
+        faculty_id, err, is_superuser = await handle_faculty(
+            message, f"Факультет {faculty} не найден", faculty
+        )
+        if err:
+            return
+    else:
+        # беседа админов
+        faculty_id = None
 
-    await message.answer(messages.ADDED_SUCCESSFULLY % {"course": course})
-    await message.answer(messages.WELCOME % {"course": course})
+    await add_group(group_id, int(_course), faculty_id)
+
+    await message.answer(messages.ADDED_SUCCESSFULLY % {"course": _course})
+    await message.answer(messages.WELCOME % {"course": _course})
 
 
-# функционал для суперадмина + того кто прописан в settings.py
+# функционал для суперадмина(бд) + того кто прописан в settings.py
+
 
 @admin_labeler.message(text="Создать администратора <admin_id> <faculty>")
 async def add_faculty_admin(
     message: Message, admin_id: str, faculty: str
 ) -> None:
-    admin_id_validated = await handle_admin_id(message, admin_id, need_in_table=False)
-    if not isinstance(admin_id_validated, int):
+    admin_id_validated = await handle_admin_id(
+        message, admin_id, need_in_table=False
+    )
+    if not admin_id_validated:
         return
 
     faculty_id, err, is_superuser = await handle_faculty(
@@ -75,21 +88,28 @@ async def add_faculty_admin(
 
     if not is_superuser:
         await message.answer(
-            messages.ADDED_ADMIN_SUCCESSFULLY.format(admin_id=admin_id_validated, faculty=faculty)
+            messages.ADDED_ADMIN_SUCCESSFULLY.format(
+                admin_id=admin_id_validated, faculty=faculty
+            )
         )
     else:
         await message.answer(
-            messages.ADDED_SUPER_ADMIN_SUCCESSFULLY.format(admin_id=admin_id_validated)
+            messages.ADDED_SUPER_ADMIN_SUCCESSFULLY.format(
+                admin_id=admin_id_validated
+            )
         )
+
 
 @admin_labeler.message(text="Удалить администратора <admin_id>")
 async def delete_faculty_admin(message: Message, admin_id: str) -> None:
-    admin_id_validated = await handle_admin_id(message, admin_id, need_in_table=True)
+    admin_id_validated = await handle_admin_id(
+        message, admin_id, need_in_table=True
+    )
     if not isinstance(admin_id_validated, int):
         return
 
     await delete_admin(admin_id_validated)
 
     await message.answer(
-            messages.ADMIN_DELETED_SUCCESSFULLY.format(admin_id=admin_id_validated)
-        )
+        messages.ADMIN_DELETED_SUCCESSFULLY.format(admin_id=admin_id_validated)
+    )

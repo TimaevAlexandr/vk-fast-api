@@ -1,7 +1,13 @@
 import pytest
 from sqlalchemy import select
 
-from app.db.admins import Admin, add_admin, get_all_admins, get_all_superusers
+from app.db.admins import (
+    Admin,
+    add_admin,
+    delete_admin,
+    get_all_admins,
+    get_all_superusers,
+)
 from app.db.common import engine
 
 
@@ -42,3 +48,12 @@ async def test_get_all_superusers(init_db):
     superusers = await get_all_superusers()
 
     assert len(superusers) == 1
+
+
+@pytest.mark.asyncio
+async def test_delete_admin(init_db):
+    await add_admin(1, True, None)
+    await add_admin(2, False, 1)
+
+    await delete_admin(1)
+    assert len(await get_all_admins()) == 1

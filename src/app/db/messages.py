@@ -23,7 +23,7 @@ async def add_message(
     text: str | None,
     attachment: list | None,
     date: datetime,
-    author: str,
+    author: int,
     *,
     session: AsyncSession,
 ) -> Message:

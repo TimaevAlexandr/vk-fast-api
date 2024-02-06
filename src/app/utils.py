@@ -3,10 +3,12 @@ import re
 from vkbottle.user import Message
 
 import settings
-from app.db.admins import get_all_admins, get_all_superusers, Admin
+from app.db.admins import Admin, get_all_admins, get_all_superusers
 from app.db.faculties import get_faculty_id
 from app.db.groups import get_groups_ids
 from settings import ADMINS
+
+all_courses = (-1, 1, 2, 3, 4, 5)
 
 
 def is_valid_id_format(input_string):
@@ -33,12 +35,53 @@ def process_course(course: str | int) -> int:
     return 0
 
 
+async def make_pairs(courses: set, faculties: str | None):
+    if -1 in courses:
+        courses.remove(-1)  # исключаем админский курс
+    crs = sorted(courses)
+
+    if not faculties:
+        return [(course, None) for course in crs]
+
+    fac = faculties.split(" ")
+    fac = [await get_faculty_id(faculty.strip()) for faculty in fac]
+
+    pairs = [(course, faculty) for course in crs for faculty in fac]
+
+    return pairs
+
+
+def parse_add_regex(
+    message: Message,
+) -> tuple[str | None, str | None] | tuple[None, None]:
+    add_pattern = re.compile(r"^Добавить (\S+)(?:\s*([^\[\]]+))?$")
+    match = add_pattern.match(message.text)
+
+    if match:
+        course = match.group(1)
+        faculty = match.group(2)
+        return course, faculty
+    else:
+        return None, None
+
+
+async def proc_course(courses):
+    processed_courses = set()
+    for cours in set(courses):
+        _course = process_course(cours.strip())
+
+        if _course not in all_courses:
+            continue
+        processed_courses.add(_course)
+    return processed_courses
+
+
 async def handle_course(
     message: Message, course: str | int, check: bool = False
-) -> bool:
+) -> int:
     _course = process_course(course)
 
-    if _course not in (-1, 1, 2, 3, 4, 5):
+    if _course not in all_courses:
         await message.answer("Не верно введен курс!")
         return False
 
@@ -49,7 +92,7 @@ async def handle_course(
             await message.answer("Произошла непредвиденная ошибка!")
             return False
 
-    return True
+    return _course
 
 
 async def handle_group(
@@ -80,7 +123,9 @@ async def handle_faculty(
             return None, text, None
 
 
-async def handle_admin_id(message: Message, admin_id: str, need_in_table: bool) -> int | bool:
+async def handle_admin_id(
+    message: Message, admin_id: str, need_in_table: bool
+) -> int | bool:
     super_admins = await get_all_superusers() + ADMINS
 
     if message.from_id not in super_admins:
@@ -94,8 +139,10 @@ async def handle_admin_id(message: Message, admin_id: str, need_in_table: bool) 
         return False
 
     admin_id_int = int(extract_id(admin_id))
-    
-    if not need_in_table: # если необходимо условие что такой не должен быть в таблице
+
+    if (
+        not need_in_table
+    ):  # если необходимо условие что такой не должен быть в таблице
         all_admins: list[Admin] = await get_all_admins()
 
         if any(int(admin.id) == admin_id_int for admin in all_admins):

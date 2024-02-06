@@ -43,3 +43,12 @@ async def get_faculty_id(name: str, *, session: AsyncSession):
     if faculty:
         return faculty.id
     return None
+
+
+@db_connect
+async def get_faculty_name(id: int, *, session: AsyncSession):
+    result = await session.execute(select(Faculty).where(Faculty.id == id))
+    faculty = result.scalar_one_or_none()
+    if faculty:
+        return faculty.name
+    return None

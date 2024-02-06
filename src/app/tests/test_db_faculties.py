@@ -2,7 +2,12 @@ import pytest
 from sqlalchemy import select
 
 from app.db.common import engine
-from app.db.faculties import Faculty, add_faculty, get_all_faculties
+from app.db.faculties import (
+    Faculty,
+    add_faculty,
+    get_all_faculties,
+    get_faculty_id,
+)
 
 
 @pytest.mark.asyncio
@@ -29,3 +34,10 @@ async def test_get_all_faculties(init_db):
     faculties = await get_all_faculties()
 
     assert len(faculty_names_to_add) == len(faculties)
+
+
+@pytest.mark.asyncio
+async def test_get_faculty_id(init_db):
+    faculty_name = "ВУЦ"
+    await add_faculty(1, faculty_name)
+    assert await get_faculty_id(faculty_name) == 1

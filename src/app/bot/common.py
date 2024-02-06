@@ -15,3 +15,11 @@ async def user_help(message: Message) -> MessagesSendUserIdsResponseItem:
         return await message.answer(messages.FORBIDDEN)
 
     return await message.answer(messages.HELP)
+
+
+@common_labeler.message(text="Список факультетов")
+async def faculty_list(message: Message) -> MessagesSendUserIdsResponseItem:
+    if message.from_id not in settings.ADMINS:
+        return await message.answer(messages.FORBIDDEN)
+
+    return await message.answer(messages.FacultiesMessage)
