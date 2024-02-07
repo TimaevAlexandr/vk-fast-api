@@ -1,5 +1,4 @@
 from typing import Iterable
-from datetime import datetime
 
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, Boolean
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,7 +6,7 @@ from sqlalchemy.orm import relationship, selectinload
 from sqlalchemy.sql.expression import delete, insert, select, update
 
 from app.db.common import Base, db_connect
-from app.db.messages import Message
+from app.db.messages import get_message
 
 
 class StudentGroup(Base):  # type: ignore[valid-type,misc]
@@ -32,7 +31,7 @@ class GroupMessage(Base):  # type: ignore[valid-type,misc]
 @db_connect
 async def connect_message_to_group(
     group_id: int,
-    message: Message,
+    message_id: int,
     received: bool,
     *,
     session: AsyncSession,
@@ -45,7 +44,7 @@ async def connect_message_to_group(
         ),
     )
     association = GroupMessage(received=received)
-    association.message = message
+    association.message = await get_message(message_id)
     group.messages.append(association)
 
     await session.commit()

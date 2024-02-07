@@ -42,7 +42,7 @@ async def group_broadcast(
 
 async def course_broadcast(
     course: int,
-    from_id: int,
+    message_id: int,
     text: str | None,
     attachment: list | None,
 ) -> tuple[int, tuple[bool]]:
@@ -56,11 +56,10 @@ async def course_broadcast(
         return course, (False,)
 
     result: list[bool] = []
-    message: Message = await add_message(text, attachment, from_id)
     for group in ids:
         res = await group_broadcast(group, text, attachment)
         result.append(res)
-        await connect_message_to_group(group, message, res)
+        await connect_message_to_group(group, message_id, res)
     return course, tuple(result)  # type: ignore[return-value]
 
 
@@ -74,9 +73,10 @@ async def broadcast(
         logger.error("Courses is not numeric")
         return None
     coroutines: list[Coroutine] = []
+    message_id = await add_message(text, attachment, from_id)
     for course in sorted(set(courses)):
         coroutines.append(
-            course_broadcast(int(course), from_id, text, attachment)
+            course_broadcast(int(course), message_id, text, attachment)
         )
     done = await asyncio.gather(*coroutines)
     return tuple(done)  # type: ignore[return-value]

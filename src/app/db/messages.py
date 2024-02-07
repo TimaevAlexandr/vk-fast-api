@@ -9,6 +9,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql.expression import select
 
 from app.db.common import Base, db_connect
 
@@ -32,7 +33,7 @@ async def add_message(
     date: datetime | None = None,
     *,
     session: AsyncSession,
-) -> Message:
+) -> int:
     message = Message(
         text=text,
         attachment=attachment,
@@ -41,4 +42,17 @@ async def add_message(
     )
     session.add(message)
     await session.commit()
-    return message
+    return await session.scalar(
+        select(Message.id).order_by(Message.id.desc()).limit(1)
+    )
+
+
+@db_connect
+async def get_message(
+    message_id: int,
+    *,
+    session: AsyncSession,
+):
+    return await session.scalar(
+        select(Message).where(Message.id == message_id)
+    )
