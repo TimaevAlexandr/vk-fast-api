@@ -101,17 +101,16 @@ async def broadcast(
     attachment: list | None = None,
 ) -> tuple[tuple[int, tuple[bool]]] | None:
     try:
-        (admin,) = await get_admin_by_id(int(from_id))
-        admin = admin[0]
+        admin = await get_admin_by_id(int(from_id))
         if not admin:
             return None
+
         coroutines: list[Coroutine] = []
 
         processed_courses = await proc_course(courses)
         if not processed_courses and courses != "всем":
             return None
 
-        print("", courses)
         if admin.is_superuser:
             # Суперпользователь
             if courses == "всем":

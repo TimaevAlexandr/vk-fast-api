@@ -5,15 +5,15 @@ from app.db.common import engine
 from app.db.faculties import (
     Faculty,
     add_faculty,
-    get_all_faculties,
     get_faculty_id,
+    get_faculty_name,
 )
 
 
 @pytest.mark.asyncio
 async def test_add_faculty(init_db):
-    faculty_name = "ИКСС"
-    await add_faculty(1, faculty_name)
+    faculty_name = "ВУЦ"
+    await add_faculty(4, faculty_name)
 
     async with engine.connect() as conn:
         result = (
@@ -24,20 +24,16 @@ async def test_add_faculty(init_db):
 
     assert result.name == faculty_name
 
-
-@pytest.mark.asyncio
-async def test_get_all_faculties(init_db):
-    faculty_names_to_add = ["ИКСС", "ИСИТ", "ЦЭУБИ"]
-    for id, faculty_name in enumerate(faculty_names_to_add):
-        await add_faculty(id + 1, faculty_name)
-
-    faculties = await get_all_faculties()
-
-    assert len(faculty_names_to_add) == len(faculties)
-
-
 @pytest.mark.asyncio
 async def test_get_faculty_id(init_db):
     faculty_name = "ВУЦ"
-    await add_faculty(1, faculty_name)
-    assert await get_faculty_id(faculty_name) == 1
+    await add_faculty(4, faculty_name)
+    assert await get_faculty_id(faculty_name) == 4
+
+
+@pytest.mark.asyncio
+async def test_get_faculty_name(init_db):
+    faculty_id = 3
+    await add_faculty(faculty_id, "ИСиТ")
+    faculty_name = await get_faculty_name(faculty_id)
+    assert faculty_name == "ИСиТ"

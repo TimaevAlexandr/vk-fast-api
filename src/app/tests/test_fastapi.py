@@ -79,10 +79,10 @@ async def test_callback_event(mocker):
 @pytest.mark.asyncio
 async def test_callback_full_event(mocker, init_db, groups):
     client = TestClient(app)
-    text = "Привет мир!"
+    text = "Привет мой факультет!"
     data = {
         "type": "message_new",
-        "group_id": 0,
+        "group_id": 1,
         "object": {
             "message": {
                 "from_id": 1,
@@ -95,7 +95,7 @@ async def test_callback_full_event(mocker, init_db, groups):
             "client_info": {},
         },
     }
-    mocker.patch("app.bot.broadcast.settings.ADMINS", [1])
+    # mocker.patch("app.bot.broadcast.settings.ADMINS", [1])
     mocker.patch.object(bot, "api", autospec=True)
 
     bot.api.messages.send = mocker.AsyncMock()
@@ -121,8 +121,8 @@ async def test_callback_full_event(mocker, init_db, groups):
                 message=(
                     "Рассылка отправлена не полностью.\n\n"
                     "Курс 1: +\n"
-                    "Курс 2: +\n"
-                    "Курс 3: +\n"
+                    "Курс 2: -\n"
+                    "Курс 3: -\n"
                     "Курс 4: -"
                 ),
                 random_id=0,

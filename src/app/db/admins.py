@@ -63,7 +63,8 @@ async def delete_admin(admin_id: int, *, session: AsyncSession) -> None:
 async def get_admin_by_id(
     admin_id: int, *, session: AsyncSession
 ) -> Admin | None:
-    admin = await session.execute(
+    result = await session.execute(
         select(Admin).where(Admin.id == int(admin_id))
     )
+    admin = result.scalar_one_or_none()
     return admin  # type: ignore

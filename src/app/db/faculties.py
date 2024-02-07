@@ -30,11 +30,6 @@ async def add_faculty(
     await session.commit()
 
 
-@db_connect
-async def get_all_faculties(*, session: AsyncSession):
-    faculties = await session.execute(select(Faculty))
-    return faculties.all()
-
 
 @db_connect
 async def get_faculty_id(name: str, *, session: AsyncSession):
