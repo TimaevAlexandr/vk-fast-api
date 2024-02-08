@@ -42,9 +42,8 @@ async def add_message(
     )
     session.add(message)
     await session.commit()
-    return await session.scalar(
-        select(Message.id).order_by(Message.id.desc()).limit(1)
-    )
+    await session.refresh(message)
+    return message.id
 
 
 @db_connect
