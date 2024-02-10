@@ -100,6 +100,7 @@ async def test_course_broadcast_empty(mocker):
     course = 2023
     text = "hello world!"
     attachment = ["123"]
+    from_id = 1
 
     mocker.patch.object(bot, "api", autospec=True)
 
@@ -111,9 +112,13 @@ async def test_course_broadcast_empty(mocker):
     add_message_mock = mocker.patch(
         "app.broadcast.add_message", new_callable=AsyncMock
     )
-    add_message_mock.return_value = 1
+    add_message_mock.return_value = Message(
+        text=text, attachment=attachment, author=from_id
+    )
 
-    result = await course_broadcast(course, add_message_mock.return_value, text, attachment)
+    result = await course_broadcast(
+        course, add_message_mock.return_value, text, attachment
+    )
 
     assert result == (course, (False,))
     get_group_ids_by_course_mock.assert_awaited()
@@ -127,6 +132,7 @@ async def test_course_broadcast_exception(mocker):
     course = 2023
     text = "hello world!"
     attachment = ["123"]
+    from_id = 1
 
     mocker.patch.object(bot, "api", autospec=True)
 
@@ -138,7 +144,9 @@ async def test_course_broadcast_exception(mocker):
     add_message_mock = mocker.patch(
         "app.broadcast.add_message", new_callable=AsyncMock
     )
-    add_message_mock.return_value = 1
+    add_message_mock.return_value = Message(
+        text=text, attachment=attachment, author=from_id
+    )
 
     result = await course_broadcast(
         course, add_message_mock.return_value, text, attachment
@@ -153,6 +161,7 @@ async def test_course_broadcast_successful(mocker):
     course = 2023
     text = "hello world!"
     attachment = ["123"]
+    from_id = 1
 
     mocker.patch.object(bot, "api", autospec=True)
 
@@ -169,14 +178,18 @@ async def test_course_broadcast_successful(mocker):
     add_message_mock = mocker.patch(
         "app.broadcast.add_message", new_callable=AsyncMock
     )
-    add_message_mock.return_value = 1
+    add_message_mock.return_value = Message(
+        text=text, attachment=attachment, author=from_id
+    )
 
     connect_message_to_group_mock = mocker.patch(
         "app.broadcast.connect_message_to_group", new_callable=AsyncMock
     )
     connect_message_to_group_mock.return_value = None
 
-    result = await course_broadcast(course, add_message_mock.return_value, text, attachment)
+    result = await course_broadcast(
+        course, add_message_mock.return_value, text, attachment
+    )
 
     assert result == (course, (True,) * 3)
     get_group_ids_by_course_mock.assert_awaited()
@@ -208,7 +221,9 @@ async def test_broadcast_empty(mocker):
     add_message_mock = mocker.patch(
         "app.broadcast.add_message", new_callable=AsyncMock
     )
-    add_message_mock.return_value = 1
+    add_message_mock.return_value = Message(
+        text=text, attachment=attachment, author=from_id
+    )
 
     connect_message_to_group_mock = mocker.patch(
         "app.broadcast.connect_message_to_group", new_callable=AsyncMock
@@ -245,7 +260,9 @@ async def test_broadcast_successful(mocker):
     add_message_mock = mocker.patch(
         "app.broadcast.add_message", new_callable=AsyncMock
     )
-    add_message_mock.return_value = 1
+    add_message_mock.return_value = Message(
+        text=text, attachment=attachment, author=from_id
+    )
 
     connect_message_to_group_mock = mocker.patch(
         "app.broadcast.connect_message_to_group", new_callable=AsyncMock

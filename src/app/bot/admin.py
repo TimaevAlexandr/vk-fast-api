@@ -53,7 +53,7 @@ async def add(message: Message, course: str) -> None:
 
 @admin_labeler.message(text="Статистика <course>")
 async def statistics(message: Message, course: str) -> None:
-    if not course == "все" and not await handle_course(message, course):
+    if course != "все" and not await handle_course(message, course):
         return
 
     answer = ""

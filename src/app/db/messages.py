@@ -42,8 +42,7 @@ async def add_message(
     )
     session.add(message)
     await session.commit()
-    await session.refresh(message)
-    return message.id
+    return message
 
 
 @db_connect

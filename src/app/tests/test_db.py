@@ -134,8 +134,8 @@ async def test_add_message(init_db):
     author = 1
     date = datetime.now()
     recieved = True
-    message_id = await add_message(text, attachment, author, date)
-    await connect_message_to_group(group_id, message_id, recieved)
+    message = await add_message(text, attachment, author, date)
+    await connect_message_to_group(group_id, message, recieved)
     async with engine.connect() as conn:
         result_message = (
             await conn.execute(
