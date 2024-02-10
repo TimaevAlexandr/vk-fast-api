@@ -5,10 +5,10 @@ from app.bot import messages
 from app.db.groups import (
     add_group,
     change_group_course,
+    count_messages_by_course,
+    count_messages_by_group,
     get_course_by_group_id,
     get_group_ids_by_course,
-    count_messages_by_group,
-    count_messages_by_course,
 )
 from app.utils import get_group_id, group_is_added, handle_course
 

@@ -1,13 +1,6 @@
 from typing import Iterable
 
-from sqlalchemy import (
-    Boolean,
-    Column,
-    ForeignKey,
-    Integer,
-    Boolean,
-    func,
-)
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, selectinload
 from sqlalchemy.sql.expression import delete, insert, select, update
@@ -66,7 +59,7 @@ async def count_messages_by_group(
     *,
     session: AsyncSession,
 ) -> int:
-    return await session.scalar(
+    return await session.scalar(  # type: ignore
         select(func.count(GroupMessage.student_groups_id)).where(
             (GroupMessage.student_groups_id == group_id)
             & (GroupMessage.received == received)
@@ -79,7 +72,7 @@ async def count_messages_by_course(
     *,
     session: AsyncSession,
 ) -> list[tuple[int, int]]:
-    return (
+    return (  # type: ignore
         await session.execute(
             select(
                 StudentGroup.course,

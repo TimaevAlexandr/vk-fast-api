@@ -1,12 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import (
-    Column,
-    DateTime,
-    Integer,
-    PickleType,
-    Text,
-)
+from sqlalchemy import Column, DateTime, Integer, PickleType, Text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import select
@@ -33,7 +27,7 @@ async def add_message(
     date: datetime | None = None,
     *,
     session: AsyncSession,
-) -> int:
+) -> Message:
     message = Message(
         text=text,
         attachment=attachment,

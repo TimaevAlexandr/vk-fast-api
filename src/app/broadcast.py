@@ -7,11 +7,11 @@ from vkbottle import VKAPIError
 
 import settings
 from app.db.groups import (
+    connect_message_to_group,
     delete_group,
     get_group_ids_by_course,
-    connect_message_to_group,
 )
-from app.db.messages import add_message, Message
+from app.db.messages import Message, add_message
 from app.exceptions import DBError
 from app.vk import bot
 

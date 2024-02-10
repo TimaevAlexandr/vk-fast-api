@@ -6,23 +6,25 @@ from vkbottle.exception_factory.code_exception import CodeExceptionMeta
 
 import settings
 from app.broadcast import broadcast, course_broadcast, group_broadcast
+from app.db.messages import Message
 from app.exceptions import DBError
 from app.vk import bot
-from app.db.messages import Message
 
 
 class VKAPIErrorPermissionDenied(  # type: ignore[call-arg]
     VKAPIError,
     code=7,
     metaclass=CodeExceptionMeta,
-): ...
+):
+    ...
 
 
 class VKAPICommonError(  # type: ignore[call-arg]
     VKAPIError,
     code=1,
     metaclass=CodeExceptionMeta,
-): ...
+):
+    ...
 
 
 @pytest.mark.asyncio

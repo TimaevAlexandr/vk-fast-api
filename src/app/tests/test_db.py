@@ -1,21 +1,22 @@
-import pytest
 from datetime import datetime
+
+import pytest
 from sqlalchemy import select
 from sqlalchemy.exc import DBAPIError
 
 from app.db.common import db_connect, engine
 from app.db.groups import (
-    StudentGroup,
     GroupMessage,
+    StudentGroup,
     add_group,
     change_group_course,
+    connect_message_to_group,
     delete_group,
     get_course_by_group_id,
     get_group_ids_by_course,
     get_groups_ids,
-    connect_message_to_group,
 )
-from app.db.messages import add_message, Message
+from app.db.messages import Message, add_message
 from app.exceptions import DBError
 
 
@@ -138,13 +139,13 @@ async def test_add_message(init_db):
     await connect_message_to_group(group_id, message, recieved)
     async with engine.connect() as conn:
         result_message = (
-            await conn.execute(
-                select(Message).where(Message.id == message_id)
-            )
+            await conn.execute(select(Message).where(Message.id == message_id))
         ).first()
         result_association = (
             await conn.execute(
-                select(GroupMessage).where(GroupMessage.student_groups_id == group_id)
+                select(GroupMessage).where(
+                    GroupMessage.student_groups_id == group_id
+                )
             )
         ).first()
     assert result_message.text == text

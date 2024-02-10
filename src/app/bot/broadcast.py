@@ -70,7 +70,7 @@ async def sharing_text(message: Message) -> None:
     if not _text and not _attachment:
         await message.answer("Нечего пересылать")
         return
-    
+
     broadcast_result = await broadcast(
         courses,
         message.from_id,
