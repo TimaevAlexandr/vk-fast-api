@@ -1,12 +1,19 @@
 from typing import Iterable
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, Boolean
+from sqlalchemy import (
+    Boolean,
+    Column,
+    ForeignKey,
+    Integer,
+    Boolean,
+    func,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, selectinload
 from sqlalchemy.sql.expression import delete, insert, select, update
 
 from app.db.common import Base, db_connect
-from app.db.messages import get_message
+from app.db.messages import get_message, Message
 
 
 class StudentGroup(Base):  # type: ignore[valid-type,misc]
@@ -14,7 +21,7 @@ class StudentGroup(Base):  # type: ignore[valid-type,misc]
 
     id = Column(Integer, primary_key=True)
     course = Column(Integer, nullable=False)
-    messages = relationship("GroupMessage")
+    messages = relationship("GroupMessage", back_populates="group")
 
 
 class GroupMessage(Base):  # type: ignore[valid-type,misc]
@@ -25,7 +32,8 @@ class GroupMessage(Base):  # type: ignore[valid-type,misc]
     )
     messages_id = Column(ForeignKey("messages.id"), primary_key=True)
     received = Column(Boolean, nullable=False)
-    message = relationship("Message")
+    message = relationship("Message", back_populates="groups")
+    group = relationship("StudentGroup", back_populates="messages")
 
 
 @db_connect
@@ -48,6 +56,43 @@ async def connect_message_to_group(
     group.messages.append(association)
 
     await session.commit()
+
+
+@db_connect
+async def count_messages_by_group(
+    group_id: int,
+    received: bool,
+    *,
+    session: AsyncSession,
+) -> int:
+    return await session.scalar(
+        select(func.count(GroupMessage.student_groups_id)).where(
+            (GroupMessage.student_groups_id == group_id)
+            & (GroupMessage.received == received)
+        )
+    )
+
+
+@db_connect
+async def count_messages_by_course(
+    *,
+    session: AsyncSession,
+) -> list[tuple[int, int]]:
+    return (
+        await session.execute(
+            select(
+                StudentGroup.course,
+                func.count(Message.id).label("count_messages"),
+            )
+            .outerjoin(
+                GroupMessage,
+                StudentGroup.id == GroupMessage.student_groups_id,
+            )
+            .outerjoin(Message, GroupMessage.messages_id == Message.id)
+            .group_by(StudentGroup.course)
+            .order_by(StudentGroup.course)
+        )
+    ).all()
 
 
 @db_connect

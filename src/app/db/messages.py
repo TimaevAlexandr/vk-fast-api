@@ -21,8 +21,8 @@ class Message(Base):  # type: ignore[valid-type,misc]
     text = Column(Text)
     attachment = Column(PickleType)
     author = Column(Integer, nullable=False)
-    date = Column(DateTime, nullable=False, default=datetime.now)
-    groups = relationship("GroupMessage")
+    date = Column(DateTime, nullable=False, default=datetime.utcnow)
+    groups = relationship("GroupMessage", back_populates="message")
 
 
 @db_connect
