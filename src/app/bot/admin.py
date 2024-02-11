@@ -62,7 +62,8 @@ async def statistics(message: Message, course: str) -> None:
         group_ids = await get_group_ids_by_course(int(course))
         for group_id in group_ids:
             answer += (
-                "В группу %s отправлено %s сообщений, %s не удалось отправить\n"
+                "В группу %s отправлено %s сообщений, "
+                "%s не удалось отправить\n"
                 % (
                     group_id,
                     await count_messages_by_group(group_id, True),

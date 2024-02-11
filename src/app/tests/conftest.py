@@ -4,7 +4,8 @@ import pytest
 from sqlalchemy.engine import Connection
 
 from app.db.common import Base, engine
-from app.db.groups import add_group
+from app.db.groups import add_group, connect_message_to_group
+from app.db.messages import add_message
 
 
 @pytest.mark.asyncio
@@ -31,4 +32,14 @@ async def groups(init_db):
     await add_group(1, 1)
     await add_group(2, 2)
     await add_group(3, 3)
+    yield
+
+
+@pytest.mark.asyncio
+@pytest.fixture()
+async def messages(init_db):
+    message = await add_message(text="Hello world", attachment=[], author=1)
+    await connect_message_to_group(1, message, True)
+    await connect_message_to_group(2, message, True)
+    await connect_message_to_group(3, message, True)
     yield

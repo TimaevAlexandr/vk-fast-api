@@ -185,3 +185,62 @@ async def test_fix_course_change(
             )
         ]
     )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "stat_request, stat_answer",
+    [
+        (
+            "Статистика 1",
+            "В группу 1 отправлено 1 сообщений, 0 не удалось отправить\n"
+            "В курс 1 было отправлено 1 рассылок\n",
+        ),
+        (
+            "Статистика все",
+            "В курс 1 было отправлено 1 рассылок\n"
+            "В курс 2 было отправлено 1 рассылок\n"
+            "В курс 3 было отправлено 1 рассылок\n",
+        ),
+    ],
+)
+async def test_statistics(
+    mocker, init_db, groups, messages, stat_request, stat_answer
+):
+    client = TestClient(app)
+    data = {
+        "type": "message_new",
+        "group_id": 0,
+        "object": {
+            "message": {
+                "from_id": 1,
+                "peer_id": 1,
+                "text": stat_request,
+                "date": 0,
+                "id": 0,
+                "out": 0,
+            },
+            "client_info": {},
+        },
+    }
+    mocker.patch("app.bot.broadcast.settings.ADMINS", [1])
+    mocker.patch.object(bot, "api", autospec=True)
+    bot.api.messages.send = mocker.AsyncMock()
+    bot.api.messages.send.return_value = [1, 2, 3]
+    response = client.post(
+        "/api/callback",
+        json=data,
+    )
+
+    assert response.status_code == 200
+    assert response.text == "ok"
+
+    bot.api.messages.send.assert_has_awaits(
+        [
+            mocker.call(
+                peer_ids=[1],
+                message=stat_answer,
+                random_id=0,
+            )
+        ]
+    )
