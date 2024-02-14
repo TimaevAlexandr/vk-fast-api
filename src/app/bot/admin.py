@@ -7,7 +7,7 @@ from app.bot import messages
 from app.db.groups import (
     add_group,
     change_group_course,
-    count_messages_by_course,
+    count_messages_by_courses,
     count_messages_by_group,
     get_course_by_group_id,
     get_group_ids_by_course,
@@ -71,7 +71,7 @@ async def statistics(message: Message) -> None:
 
     answer = ""
 
-    for _course, count in await count_messages_by_course():
+    for _course, count in await count_messages_by_courses():
         if course is None or _course == int(course):
             answer += "%s курс - %s сообщений:\n" % (
                 _course,

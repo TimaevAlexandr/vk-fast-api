@@ -64,7 +64,7 @@ async def count_messages_by_group(
 
 
 @db_connect
-async def count_messages_by_course(
+async def count_messages_by_courses(
     *,
     session: AsyncSession,
 ) -> list[tuple[int, int]]:
