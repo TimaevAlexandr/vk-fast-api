@@ -4,7 +4,7 @@ from vkbottle.bot import BotLabeler
 from vkbottle.user import Message
 
 from app.bot import messages
-from app.db.groups import (
+from app.db import (
     add_group,
     change_group_course,
     count_messages_by_courses,

@@ -6,12 +6,13 @@ import aiohttp
 from vkbottle import VKAPIError
 
 import settings
-from app.db.groups import (
+from app.db import (
+    Message,
+    add_message,
     connect_message_to_group,
     delete_group,
     get_group_ids_by_course,
 )
-from app.db.messages import Message, add_message
 from app.exceptions import DBError
 from app.vk import bot
 

@@ -5,8 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import delete, insert, select, update
 
-from app.db.common import Base, db_connect
-from app.db.messages import Message
+from .common import Base, db_connect
+from .messages import Message
 
 
 class StudentGroup(Base):  # type: ignore[valid-type,misc]

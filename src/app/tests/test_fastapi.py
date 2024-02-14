@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 
 import app as App
 import settings
-from app.db.groups import get_course_by_group_id
+from app.db import get_course_by_group_id
 from app.routes import app
 from app.vk import bot
 

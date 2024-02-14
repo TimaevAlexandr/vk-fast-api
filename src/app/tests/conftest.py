@@ -3,9 +3,8 @@ from typing import AsyncGenerator
 import pytest
 from sqlalchemy.engine import Connection
 
+from app.db import add_group, add_message, connect_message_to_group
 from app.db.common import Base, engine
-from app.db.groups import add_group, connect_message_to_group
-from app.db.messages import add_message
 
 
 @pytest.mark.asyncio

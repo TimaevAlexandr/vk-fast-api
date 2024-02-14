@@ -2,10 +2,10 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.exc import DBAPIError
 
-from app.db.common import db_connect, engine
-from app.db.groups import (
+from app.db import (
     StudentGroup,
     add_group,
+    add_message,
     change_group_course,
     connect_message_to_group,
     delete_group,
@@ -13,7 +13,7 @@ from app.db.groups import (
     get_group_ids_by_course,
     get_groups_ids,
 )
-from app.db.messages import add_message
+from app.db.common import db_connect, engine
 from app.exceptions import DBError
 
 

@@ -6,7 +6,7 @@ from vkbottle.exception_factory.code_exception import CodeExceptionMeta
 
 import settings
 from app.broadcast import broadcast, course_broadcast, group_broadcast
-from app.db.messages import Message
+from app.db import Message
 from app.exceptions import DBError
 from app.vk import bot
 

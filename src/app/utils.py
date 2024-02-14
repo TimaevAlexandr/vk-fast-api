@@ -1,7 +1,7 @@
 from vkbottle.user import Message
 
 import settings
-from app.db.groups import get_groups_ids
+from app.db import get_groups_ids
 
 
 def process_course(course: str | int) -> int:

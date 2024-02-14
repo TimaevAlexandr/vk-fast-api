@@ -4,7 +4,7 @@ from sqlalchemy import JSON, Column, DateTime, Integer, Text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship
 
-from app.db.common import Base, db_connect
+from .common import Base, db_connect
 
 
 class Message(Base):  # type: ignore[valid-type,misc]
