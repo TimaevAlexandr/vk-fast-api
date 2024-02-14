@@ -2,7 +2,7 @@ from typing import Iterable
 
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship, selectinload
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import delete, insert, select, update
 
 from app.db.common import Base, db_connect
@@ -20,10 +20,10 @@ class StudentGroup(Base):  # type: ignore[valid-type,misc]
 class GroupMessage(Base):  # type: ignore[valid-type,misc]
     __tablename__ = "group_message"
 
-    student_groups_id = Column(
+    student_group_id = Column(
         ForeignKey("student_groups.id"), primary_key=True
     )
-    messages_id = Column(ForeignKey("messages.id"), primary_key=True)
+    message_id = Column(ForeignKey("messages.id"), primary_key=True)
     received = Column(Boolean, nullable=False)
     message = relationship("Message", back_populates="groups")
     group = relationship("StudentGroup", back_populates="messages")
@@ -32,24 +32,18 @@ class GroupMessage(Base):  # type: ignore[valid-type,misc]
 @db_connect
 async def connect_message_to_group(
     group_id: int,
-    message: Message,
+    message_id: int,
     received: bool,
     *,
     session: AsyncSession,
-) -> None:
-    group = await session.scalar(
-        select(StudentGroup)
-        .where(StudentGroup.id == group_id)
-        .options(
-            selectinload(StudentGroup.messages),
-        ),
+) -> GroupMessage:
+    group_message = GroupMessage(
+        student_group_id=group_id, message_id=message_id, received=received
     )
-    association = GroupMessage(received=received)
-    message = await session.merge(message)
-    association.message = message
-    group.messages.append(association)
-
+    session.add(group_message)
     await session.commit()
+    await session.refresh(group_message)
+    return group_message
 
 
 @db_connect
@@ -59,10 +53,12 @@ async def count_messages_by_group(
     *,
     session: AsyncSession,
 ) -> int:
-    return await session.scalar(  # type: ignore
-        select(func.count(GroupMessage.student_groups_id)).where(
-            (GroupMessage.student_groups_id == group_id)
-            & (GroupMessage.received == received)
+    return int(
+        await session.scalar(
+            select(func.count(GroupMessage.student_group_id)).where(
+                (GroupMessage.student_group_id == group_id)
+                & (GroupMessage.received == received)
+            )
         )
     )
 
@@ -72,21 +68,23 @@ async def count_messages_by_course(
     *,
     session: AsyncSession,
 ) -> list[tuple[int, int]]:
-    return (  # type: ignore
-        await session.execute(
-            select(
-                StudentGroup.course,
-                func.count(Message.id).label("count_messages"),
+    return list(
+        (
+            await session.execute(
+                select(
+                    StudentGroup.course,
+                    func.count(Message.id).label("count_messages"),
+                )
+                .outerjoin(
+                    GroupMessage,
+                    StudentGroup.id == GroupMessage.student_group_id,
+                )
+                .outerjoin(Message, GroupMessage.message_id == Message.id)
+                .group_by(StudentGroup.course)
+                .order_by(StudentGroup.course)
             )
-            .outerjoin(
-                GroupMessage,
-                StudentGroup.id == GroupMessage.student_groups_id,
-            )
-            .outerjoin(Message, GroupMessage.messages_id == Message.id)
-            .group_by(StudentGroup.course)
-            .order_by(StudentGroup.course)
-        )
-    ).all()
+        ).all()
+    )
 
 
 @db_connect

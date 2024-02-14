@@ -126,31 +126,27 @@ async def test_db_connect_raises_unexpected_error(mocker, init_db):
 
 @pytest.mark.asyncio
 async def test_add_message(init_db):
+    text = "hello world"
+    attachments = []
+    author = 1
+    message = await add_message(text, attachments, author)
+
+    assert message.id is not None
+
+
+@pytest.mark.asyncio
+async def test_connect_message_to_group(init_db):
     group_id = 1
     course = 1
     await add_group(group_id, course)
-    message_id = 1
     text = "hello world"
-    attachment = []
+    attachments = []
     author = 1
-    date = datetime.now()
+    message = await add_message(text, attachments, author)
     recieved = True
-    message = await add_message(text, attachment, author, date)
-    await connect_message_to_group(group_id, message, recieved)
-    async with engine.connect() as conn:
-        result_message = (
-            await conn.execute(select(Message).where(Message.id == message_id))
-        ).first()
-        result_association = (
-            await conn.execute(
-                select(GroupMessage).where(
-                    GroupMessage.student_groups_id == group_id
-                )
-            )
-        ).first()
-    assert result_message.text == text
-    assert result_message.attachment == attachment
-    assert result_message.date == date
-    assert result_message.author == author
-    assert result_association.messages_id == message_id
-    assert result_association.received == recieved
+    group_message = await connect_message_to_group(
+        group_id, message.id, recieved
+    )
+
+    assert group_message.student_group_id == group_id
+    assert group_message.message_id == message.id

@@ -59,7 +59,7 @@ async def course_broadcast(
     for group in ids:
         res = await group_broadcast(group, text, attachment)
         result.append(res)
-        await connect_message_to_group(group, message, res)
+        await connect_message_to_group(group, message.id, res)
     return course, tuple(result)  # type: ignore[return-value]
 
 

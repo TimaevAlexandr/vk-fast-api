@@ -1,3 +1,5 @@
+import re
+
 from vkbottle.bot import BotLabeler
 from vkbottle.user import Message
 
@@ -14,6 +16,8 @@ from app.utils import get_group_id, group_is_added, handle_course
 
 admin_labeler = BotLabeler()
 admin_labeler.vbml_ignore_case = True
+
+regex = r"[Сс]татистика(?: (\d))?"
 
 
 @admin_labeler.message(text="Изменить курс <course>")
@@ -51,31 +55,34 @@ async def add(message: Message, course: str) -> None:
     await message.answer(messages.WELCOME % {"course": course})
 
 
-@admin_labeler.message(text="Статистика <course>")
-async def statistics(message: Message, course: str) -> None:
-    if course != "все" and not await handle_course(message, course):
+def parse_text(message: Message) -> str | None:
+    res = re.match(regex, message.text)
+    if not res:
+        raise ValueError("Wrong regex text")
+    (course,) = res.groups()
+    return course
+
+
+@admin_labeler.message(regex=regex)
+async def statistics(message: Message) -> None:
+    course = parse_text(message)
+    if course is not None and not await handle_course(message, course):
         return
 
     answer = ""
 
-    if course != "все":
-        group_ids = await get_group_ids_by_course(int(course))
-        for group_id in group_ids:
-            answer += (
-                "В группу %s отправлено %s сообщений, "
-                "%s не удалось отправить\n"
-                % (
+    for _course, count in await count_messages_by_course():
+        if course is None or _course == int(course):
+            answer += "%s курс - %s сообщений:\n" % (
+                _course,
+                count,
+            )
+            for group_id in await get_group_ids_by_course(_course):
+                answer += "Группа %s: %s/%s\n" % (
                     group_id,
                     await count_messages_by_group(group_id, True),
-                    await count_messages_by_group(group_id, False),
+                    await count_messages_by_group(group_id, True)
+                    + await count_messages_by_group(group_id, False),
                 )
-            )
-
-    for count_course, count_messages in await count_messages_by_course():
-        if course == "все" or count_course == int(course):
-            answer += "В курс %s было отправлено %s рассылок\n" % (
-                count_course,
-                count_messages,
-            )
 
     await message.answer(answer)

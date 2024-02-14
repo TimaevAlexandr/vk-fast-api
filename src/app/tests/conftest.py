@@ -38,8 +38,8 @@ async def groups(init_db):
 @pytest.mark.asyncio
 @pytest.fixture()
 async def messages(init_db):
-    message = await add_message(text="Hello world", attachment=[], author=1)
-    await connect_message_to_group(1, message, True)
-    await connect_message_to_group(2, message, True)
-    await connect_message_to_group(3, message, True)
+    message = await add_message(text="Hello world", attachments=[], author=1)
+    await connect_message_to_group(1, message.id, True)
+    await connect_message_to_group(2, message.id, True)
+    await connect_message_to_group(3, message.id, True)
     yield
