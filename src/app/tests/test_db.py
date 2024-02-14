@@ -1,12 +1,9 @@
-from datetime import datetime
-
 import pytest
 from sqlalchemy import select
 from sqlalchemy.exc import DBAPIError
 
 from app.db.common import db_connect, engine
 from app.db.groups import (
-    GroupMessage,
     StudentGroup,
     add_group,
     change_group_course,
@@ -16,7 +13,7 @@ from app.db.groups import (
     get_group_ids_by_course,
     get_groups_ids,
 )
-from app.db.messages import Message, add_message
+from app.db.messages import add_message
 from app.exceptions import DBError
 
 
