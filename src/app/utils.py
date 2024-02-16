@@ -44,7 +44,7 @@ async def make_pairs(courses: set, faculties: str | None):
         return [(course, None) for course in crs]
 
     fac = faculties.split(" ")
-    fac = [await get_faculty_id(faculty.strip()) for faculty in fac]
+    fac = [await get_faculty_id(faculty.strip()) for faculty in fac if faculty]
 
     pairs = [(course, faculty) for course in crs for faculty in fac]
 

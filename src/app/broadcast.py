@@ -51,9 +51,10 @@ async def course_broadcast(
     attachment: list | None,
     faculty_id: int,
 ) -> tuple[int, tuple[bool], str]:
+    faculty_name = await get_faculty_name(faculty_id)
     try:
         ids = await get_group_ids_by_course_faculty_id(course, faculty_id)
-        faculty_name = await get_faculty_name(faculty_id)
+        
     except DBError as error:
         logger.error(error)
         return course, (False,), faculty_name
@@ -109,6 +110,7 @@ async def broadcast(
 
         processed_courses = await proc_course(courses)
         if not processed_courses and courses != "всем":
+            logger.error("Courses is not valid")
             return None
 
         if admin.is_superuser:

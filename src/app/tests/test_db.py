@@ -15,7 +15,7 @@ from app.db.groups import (
     get_group_ids_by_course,
     get_groups_ids,
 )
-from app.db.messages import (  # with - 5 not passed. without - 13 not passed
+from app.db.messages import ( 
     Message,
 )
 from app.exceptions import DBError
@@ -61,6 +61,8 @@ async def test_delete_group(init_db):
             )
         ).first()
     assert result_message is None
+    
+
 
 
 @pytest.mark.asyncio

@@ -77,10 +77,11 @@ def parse_text(message: Message) -> tuple[str, str | None, str]:
 @broadcast_labeler.message(regex=regex)
 @broadcast_labeler.message(regex=regex_all)
 async def sharing_text(message: Message) -> None:
+
     all_admins = [
         admin.id for admin in await get_all_admins()
-    ] + settings.ADMINS
-    print(*all_admins)
+    ] + settings.ADMINS # тот, кто в settings по умолчанию считается  суперадмин
+
     if message.from_id not in all_admins:
         return
 
@@ -100,6 +101,7 @@ async def sharing_text(message: Message) -> None:
         text=_text,
         attachment=[_attachment] if _attachment else None,
     )
+
     if broadcast_result:
         if "+" in get_results(broadcast_result) and "-" not in get_results(
             broadcast_result
