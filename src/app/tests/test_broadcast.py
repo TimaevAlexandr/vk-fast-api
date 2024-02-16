@@ -6,9 +6,9 @@ from vkbottle.exception_factory.code_exception import CodeExceptionMeta
 
 import settings
 from app.broadcast import broadcast, course_broadcast, group_broadcast
+from app.db.admins import Admin
 from app.exceptions import DBError
 from app.vk import bot
-from app.db.admins import Admin
 
 
 class VKAPIErrorPermissionDenied(  # type: ignore[call-arg]
@@ -108,19 +108,24 @@ async def test_course_broadcast_empty(mocker):
     mocker.patch.object(bot, "api", autospec=True)
 
     get_group_ids_by_course_faculty_id_mock = mocker.patch(
-        "app.broadcast.get_group_ids_by_course_faculty_id", new_callable=AsyncMock
+        "app.broadcast.get_group_ids_by_course_faculty_id",
+        new_callable=AsyncMock,
     )
     get_group_ids_by_course_faculty_id_mock.return_value = []
     get_faculty_name_mock = mocker.patch(
         "app.broadcast.get_faculty_name", new_callable=AsyncMock
     )
-    
+
     get_faculty_name_mock.return_value = "РТС"
-    result = await course_broadcast(course, from_id, text, attachment, faculty_id)
+    result = await course_broadcast(
+        course, from_id, text, attachment, faculty_id
+    )
 
     assert result == (course, (False,), "РТС")
     get_group_ids_by_course_faculty_id_mock.assert_awaited()
-    get_group_ids_by_course_faculty_id_mock.assert_called_once_with(course, faculty_id)
+    get_group_ids_by_course_faculty_id_mock.assert_called_once_with(
+        course, faculty_id
+    )
 
 
 @pytest.mark.asyncio
@@ -132,24 +137,26 @@ async def test_course_broadcast_exception(mocker):
     attachment = ["123"]
     from_id = 1
     faculty_id = 1
-    
+
     mocker.patch.object(bot, "api", autospec=True)
 
-
     error = DBError("Error")
-    
+
     get_group_ids_by_course_faculty_id_mock = mocker.patch(
-        "app.broadcast.get_group_ids_by_course_faculty_id", new_callable=AsyncMock
+        "app.broadcast.get_group_ids_by_course_faculty_id",
+        new_callable=AsyncMock,
     )
-    
+
     get_group_ids_by_course_faculty_id_mock.side_effect = error
     get_faculty_name_mock = mocker.patch(
         "app.broadcast.get_faculty_name", new_callable=AsyncMock
     )
-    
+
     get_faculty_name_mock.return_value = "РТС"
-    
-    result = await course_broadcast(course, from_id, text, attachment, faculty_id)
+
+    result = await course_broadcast(
+        course, from_id, text, attachment, faculty_id
+    )
 
     assert result == (course, (False,), "РТС")
     log_mock.assert_called_with(error)
@@ -166,7 +173,8 @@ async def test_course_broadcast_successful(mocker):
     mocker.patch.object(bot, "api", autospec=True)
 
     get_group_ids_by_course_faculty_id_mock = mocker.patch(
-        "app.broadcast.get_group_ids_by_course_faculty_id", new_callable=AsyncMock
+        "app.broadcast.get_group_ids_by_course_faculty_id",
+        new_callable=AsyncMock,
     )
     get_group_ids_by_course_faculty_id_mock.return_value = [1, 2, 3]
 
@@ -174,29 +182,45 @@ async def test_course_broadcast_successful(mocker):
         "app.broadcast.group_broadcast", new_callable=AsyncMock
     )
     group_broadcast_mock.return_value = True
-    
+
     get_faculty_name_mock = mocker.patch(
         "app.broadcast.get_faculty_name", new_callable=AsyncMock
     )
-    
+
     get_faculty_name_mock.return_value = "РТС"
-    
+
     connect_message_to_group_mock = mocker.patch(
         "app.broadcast.connect_message_to_group", new_callable=AsyncMock
     )
     connect_message_to_group_mock.return_value = None
-    
-    result = await course_broadcast(course, from_id, text, attachment, faculty_id)
+
+    result = await course_broadcast(
+        course, from_id, text, attachment, faculty_id
+    )
 
     assert result == (course, (True,) * 3, "РТС")
     get_group_ids_by_course_faculty_id_mock.assert_awaited()
-    get_group_ids_by_course_faculty_id_mock.assert_called_once_with(course, faculty_id)
+    get_group_ids_by_course_faculty_id_mock.assert_called_once_with(
+        course, faculty_id
+    )
     group_broadcast_mock.assert_awaited()
     group_broadcast_mock.assert_has_awaits(
         [
-            mocker.call(1, text, attachment, ),
-            mocker.call(2, text, attachment, ),
-            mocker.call(3, text, attachment, ),
+            mocker.call(
+                1,
+                text,
+                attachment,
+            ),
+            mocker.call(
+                2,
+                text,
+                attachment,
+            ),
+            mocker.call(
+                3,
+                text,
+                attachment,
+            ),
         ]
     )
 
@@ -208,13 +232,13 @@ async def test_broadcast_empty(mocker):
     attachment = ["123"]
     from_id = 1
     faculty_id = 1
-    faculties = None # as it is not superadmin
+    faculties = None  # as it is not superadmin
 
     mocker.patch.object(bot, "api", autospec=True)
     admin = Admin(id=from_id, is_superuser=False, faculty_id=faculty_id)
-    
+
     mocker.patch("app.broadcast.get_admin_by_id", return_value=admin)
-    
+
     course_broadcast_mock = mocker.patch(
         "app.broadcast.course_broadcast", new_callable=AsyncMock
     )
@@ -222,7 +246,9 @@ async def test_broadcast_empty(mocker):
 
     result = await broadcast(courses, faculties, from_id, text, attachment)
 
-    assert result == ((False,),) * 2 # broadcast.proc_course remove 0 from courses
+    assert (
+        result == ((False,),) * 2
+    )  # broadcast.proc_course remove 0 from courses
     course_broadcast_mock.assert_awaited()
     course_broadcast_mock.assert_has_awaits(
         [
@@ -239,12 +265,12 @@ async def test_broadcast_successful(mocker):
     attachment = ["123"]
     from_id = 1
     faculty_id = 1
-    faculties = None # as it is not superadmin
+    faculties = None  # as it is not superadmin
 
     mocker.patch.object(bot, "api", autospec=True)
-    
+
     admin = Admin(id=from_id, is_superuser=False, faculty_id=faculty_id)
-    
+
     mocker.patch("app.broadcast.get_admin_by_id", return_value=admin)
     course_broadcast_mock = mocker.patch(
         "app.broadcast.course_broadcast", new_callable=AsyncMock
@@ -257,8 +283,20 @@ async def test_broadcast_successful(mocker):
     course_broadcast_mock.assert_awaited()
     course_broadcast_mock.assert_has_awaits(
         [
-            mocker.call(2, from_id, text, attachment, faculty_id,),
-            mocker.call(3, from_id, text, attachment, faculty_id,),
+            mocker.call(
+                2,
+                from_id,
+                text,
+                attachment,
+                faculty_id,
+            ),
+            mocker.call(
+                3,
+                from_id,
+                text,
+                attachment,
+                faculty_id,
+            ),
         ]
     )
 

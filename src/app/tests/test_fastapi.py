@@ -5,10 +5,11 @@ from fastapi.testclient import TestClient
 
 import app as App
 import settings
+from app.db.admins import Admin
 from app.db.groups import get_course_by_group_id
 from app.routes import app
 from app.vk import bot
-from app.db.admins import Admin
+
 
 @pytest.fixture()
 def data():
@@ -77,6 +78,7 @@ async def test_callback_event(mocker):
     assert response.text == "ok"
     mock_process_event.assert_awaited_once_with(data)
 
+
 @pytest.fixture()
 @pytest.mark.asyncio
 async def test_callback_full_event(mocker, init_db, groups):
@@ -99,16 +101,15 @@ async def test_callback_full_event(mocker, init_db, groups):
             "client_info": {},
         },
     }
-    
+
     # mocker.patch("app.bot.broadcast.settings.ADMINS", [1])
-    
-    
+
     mocker.patch.object(bot, "api", autospec=True)
-    
+
     admin = Admin(id=from_id, is_superuser=False, faculty_id=faculty_id)
-    
+
     mocker.patch("app.broadcast.get_admin_by_id", return_value=admin)
-    
+
     bot.api.messages.send = mocker.AsyncMock()
     bot.api.messages.send.return_value = [1, 2, 3]
 
@@ -140,6 +141,7 @@ async def test_callback_full_event(mocker, init_db, groups):
             ),
         ]
     )
+
 
 @pytest.fixture()
 @pytest.mark.asyncio
@@ -194,4 +196,3 @@ async def test_fix_course_change(
             )
         ]
     )
-

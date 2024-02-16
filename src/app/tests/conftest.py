@@ -3,10 +3,11 @@ from typing import AsyncGenerator
 import pytest
 from sqlalchemy.engine import Connection
 
-from app.db.common import Base, engine
-from app.db.groups import add_group
-from app.db.faculties import add_faculty
 from app.db.admins import add_admin
+from app.db.common import Base, engine
+from app.db.faculties import add_faculty
+from app.db.groups import add_group
+
 
 @pytest.mark.asyncio
 @pytest.fixture()
@@ -41,6 +42,7 @@ async def faculties(init_db):
     faculty_names_to_add = ["РТС", "ИКСС", "ИСиТ"]
     for id, faculty_name in enumerate(faculty_names_to_add):
         await add_faculty(id + 1, faculty_name)
+
 
 @pytest.mark.asyncio
 @pytest.fixture()

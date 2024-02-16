@@ -73,6 +73,7 @@ async def get_group_ids_by_course(
     )
     return [group_id[0].id for group_id in group_ids]
 
+
 @db_connect
 async def get_course_by_group_id(
     group_id: int, *, session: AsyncSession
@@ -81,6 +82,7 @@ async def get_course_by_group_id(
         select(StudentGroup.course).where(StudentGroup.id == group_id)
     )
     return course
+
 
 @db_connect
 async def get_group_ids_by_faculty_id(

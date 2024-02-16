@@ -54,7 +54,7 @@ async def course_broadcast(
     faculty_name = await get_faculty_name(faculty_id)
     try:
         ids = await get_group_ids_by_course_faculty_id(course, faculty_id)
-        
+
     except DBError as error:
         logger.error(error)
         return course, (False,), faculty_name

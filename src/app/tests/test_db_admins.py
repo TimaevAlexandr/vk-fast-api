@@ -5,9 +5,9 @@ from app.db.admins import (
     Admin,
     add_admin,
     delete_admin,
+    get_admin_by_id,
     get_all_admins,
     get_all_superusers,
-    get_admin_by_id,
 )
 from app.db.common import engine
 

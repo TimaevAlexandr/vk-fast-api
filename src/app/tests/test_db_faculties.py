@@ -24,6 +24,7 @@ async def test_add_faculty(init_db):
 
     assert result.name == faculty_name
 
+
 @pytest.mark.asyncio
 async def test_get_faculty_id(init_db):
     faculty_name = "ВУЦ"

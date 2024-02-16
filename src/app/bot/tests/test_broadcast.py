@@ -5,6 +5,7 @@ from vkbottle.user import Message
 from app.bot.broadcast import sharing_text
 from app.db.admins import Admin
 
+
 @pytest.fixture()
 def attachment(mocker):
     attach = mocker.Mock()
@@ -52,7 +53,7 @@ def message_with_fwd(mocker, message_simple):
 )
 @pytest.mark.parametrize(
     "broadcast_result, expected_result",
-       [
+    [
         (
             (
                 (
@@ -105,7 +106,6 @@ def message_with_fwd(mocker, message_simple):
                     1,
                     (False,),
                     "ИСиТ",
-                    
                 ),
                 (
                     2,
@@ -131,9 +131,9 @@ async def test_sharing_text(
     expected_result: str,
     mocker,
 ):
-
     admins = [
-        Admin(id=i, is_superuser=False, faculty_id=f) for i, f in zip([1, 2, 3], [1, 2, 3])
+        Admin(id=i, is_superuser=False, faculty_id=f)
+        for i, f in zip([1, 2, 3], [1, 2, 3])
     ]
     mocker.patch("app.bot.broadcast.get_all_admins", return_value=admins)
 
@@ -143,7 +143,9 @@ async def test_sharing_text(
         return_value=broadcast_result,
     )
 
-    parse_text_mock =  mocker.patch("app.bot.broadcast.parse_text", return_value=("123", None, "text"))
+    parse_text_mock = mocker.patch(
+        "app.bot.broadcast.parse_text", return_value=("123", None, "text")
+    )
     mocker.patch("app.bot.broadcast.get_text", return_value="text")
     mocker.patch("app.bot.broadcast.get_attachments", return_value="wall1_1")
 
@@ -154,7 +156,7 @@ async def test_sharing_text(
     message.answer.assert_called_with(expected_result)
 
     broadcast_mock.assert_called_with(
-        "123", None , message.from_id , text="text", attachment=["wall1_1"]
+        "123", None, message.from_id, text="text", attachment=["wall1_1"]
     )
 
     parse_text_mock.assert_called_with(message)
@@ -168,7 +170,8 @@ async def test_sharing_text_forbidden(mocker):
     message.from_id = 4
 
     admins = [
-        Admin(id=i, is_superuser=False, faculty_id=f) for i, f in zip([1, 2, 3], [1, 2, 3])
+        Admin(id=i, is_superuser=False, faculty_id=f)
+        for i, f in zip([1, 2, 3], [1, 2, 3])
     ]
     mocker.patch("app.bot.broadcast.get_all_admins", return_value=admins)
     broadcast_mock = mocker.patch("app.bot.broadcast.broadcast")
@@ -176,4 +179,4 @@ async def test_sharing_text_forbidden(mocker):
 
     await sharing_text(message)
     message.answer.asser_awaited()
-    broadcast_mock.assert_not_called() # админ не проходит
+    broadcast_mock.assert_not_called()  # админ не проходит

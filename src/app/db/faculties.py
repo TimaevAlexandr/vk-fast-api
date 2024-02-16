@@ -30,7 +30,6 @@ async def add_faculty(
     await session.commit()
 
 
-
 @db_connect
 async def get_faculty_id(name: str, *, session: AsyncSession):
     result = await session.execute(select(Faculty).where(Faculty.name == name))
