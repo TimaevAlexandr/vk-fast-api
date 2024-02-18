@@ -1,12 +1,11 @@
 from typing import Iterable
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, func
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, case, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import delete, insert, select, update
 
 from .common import Base, db_connect
-from .messages import Message
 
 
 class StudentGroup(Base):  # type: ignore[valid-type,misc]
@@ -47,44 +46,26 @@ async def connect_message_to_group(
 
 
 @db_connect
-async def count_messages_by_group(
-    group_id: int,
-    received: bool,
+async def count_messages(
     *,
     session: AsyncSession,
-) -> int:
-    return int(
-        await session.scalar(
-            select(func.count(GroupMessage.student_group_id)).where(
-                (GroupMessage.student_group_id == group_id)
-                & (GroupMessage.received == received)
+) -> list[tuple[int]]:
+    result: list[tuple[int]] = (
+        await session.execute(
+            select(
+                StudentGroup.course,
+                GroupMessage.student_group_id,
+                func.count(case((GroupMessage.received, 1), else_=None)),
+                func.count(GroupMessage.message_id),
             )
+            .outerjoin(
+                StudentGroup, GroupMessage.student_group_id == StudentGroup.id
+            )
+            .group_by(StudentGroup.course, GroupMessage.student_group_id)
+            .order_by(StudentGroup.course, GroupMessage.student_group_id)
         )
-    )
-
-
-@db_connect
-async def count_messages_by_courses(
-    *,
-    session: AsyncSession,
-) -> list[tuple[int, int]]:
-    return list(
-        (
-            await session.execute(
-                select(
-                    StudentGroup.course,
-                    func.count(Message.id).label("count_messages"),
-                )
-                .outerjoin(
-                    GroupMessage,
-                    StudentGroup.id == GroupMessage.student_group_id,
-                )
-                .outerjoin(Message, GroupMessage.message_id == Message.id)
-                .group_by(StudentGroup.course)
-                .order_by(StudentGroup.course)
-            )
-        ).all()
-    )
+    ).all()
+    return result
 
 
 @db_connect

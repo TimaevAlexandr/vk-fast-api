@@ -7,10 +7,8 @@ from app.bot import messages
 from app.db import (
     add_group,
     change_group_course,
-    count_messages_by_courses,
-    count_messages_by_group,
+    count_messages,
     get_course_by_group_id,
-    get_group_ids_by_course,
 )
 from app.utils import get_group_id, group_is_added, handle_course
 
@@ -69,20 +67,14 @@ async def statistics(message: Message) -> None:
     if course is not None and not await handle_course(message, course):
         return
 
-    answer = ""
+    answer: list[str] = []
+    current_course = None
 
-    for _course, count in await count_messages_by_courses():
+    for _course, group, count_received, count_all in await count_messages():
         if course is None or _course == int(course):
-            answer += "%s курс - %s сообщений:\n" % (
-                _course,
-                count,
-            )
-            for group_id in await get_group_ids_by_course(_course):
-                answer += "Группа %s: %s/%s\n" % (
-                    group_id,
-                    await count_messages_by_group(group_id, True),
-                    await count_messages_by_group(group_id, True)
-                    + await count_messages_by_group(group_id, False),
-                )
+            if current_course != _course:
+                answer.append(f"{_course} курс - {count_all} сообщений:")
+                current_course = _course
+            answer.append(f"Группа {group}: {count_received}/{count_all}")
 
-    await message.answer(answer)
+    await message.answer("\n".join(answer))
