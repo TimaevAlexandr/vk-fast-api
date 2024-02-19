@@ -43,10 +43,11 @@ async def make_pairs(courses: set, faculties: str | None):
     if not faculties:
         return [(course, None) for course in crs]
 
-    fac = faculties.split(" ")
-    fac = [await get_faculty_id(faculty.strip()) for faculty in fac if faculty]
+    fac_list = faculties.split(" ")
+    
+    fac_ids = [await get_faculty_id(faculty.strip()) for faculty in fac_list if faculty]
 
-    pairs = [(course, faculty) for course in crs for faculty in fac]
+    pairs = [(course, faculty_id) for course in crs for faculty_id in fac_ids]
 
     return pairs
 
@@ -143,6 +144,7 @@ async def handle_admin_id(
     if (
         not need_in_table
     ):  # если необходимо условие что такой не должен быть в таблице
+        # для добавления админа
         all_admins: list[Admin] = await get_all_admins()
 
         if any(int(admin.id) == admin_id_int for admin in all_admins):

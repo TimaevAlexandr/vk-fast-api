@@ -39,8 +39,15 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
 
-    for faculty in faculties:
-        op.execute(sa.text(f"INSERT INTO faculty (name) VALUES ('{faculty}')"))
+    faculty_table = sa.Table(
+        'faculty',
+        sa.MetaData(),
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('name', sa.Text(), nullable=False)
+    )
+
+    op.bulk_insert(faculty_table, [{'name': faculty} for faculty in faculties])
+
 
     op.create_table(
         "admins",

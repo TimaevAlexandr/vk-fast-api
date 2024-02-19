@@ -3,3 +3,4 @@ database.db
 .idea/
 __pycache__/
 .mypy_cache/
+.vscode

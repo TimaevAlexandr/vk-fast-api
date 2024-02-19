@@ -1,11 +1,16 @@
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, call
 
 import pytest
 from vkbottle import VKAPIError
 from vkbottle.exception_factory.code_exception import CodeExceptionMeta
 
 import settings
-from app.broadcast import broadcast, course_broadcast, group_broadcast
+from app.broadcast import (
+    all_groups_broadcast,
+    broadcast,
+    course_broadcast,
+    group_broadcast,
+)
 from app.db.admins import Admin
 from app.exceptions import DBError
 from app.vk import bot
@@ -95,6 +100,113 @@ async def test_group_broadcast_failed(mocker):
     assert not result
     bot.api.messages.send.assert_awaited()
     log_mock.assert_called_with(error)
+
+
+@pytest.mark.asyncio
+async def test_all_groups_broadcast_successful(mocker):
+    from_id = 1
+    text = "hello world!"
+    attachment = ["123"]
+    groups_ids = [1, 2, 3]
+
+    mocker.patch.object(bot, "api", autospec=True)
+
+    bot.api.messages.send = AsyncMock()
+    bot.api.messages.send.return_value = 1
+
+    get_groups_ids_mock = mocker.patch(
+        "app.broadcast.get_groups_ids",
+        new_callable=AsyncMock,
+    )
+    get_groups_ids_mock.return_value = groups_ids
+
+    connect_message_to_group_mock = mocker.patch(
+        "app.broadcast.connect_message_to_group",
+        new_callable=AsyncMock,
+    )
+    connect_message_to_group_mock.return_value = None
+
+    result = await all_groups_broadcast(from_id, text, attachment)
+
+    assert result == ("ВСЕ", tuple([True, True, True]), "ВСЕ")
+    bot.api.messages.send.assert_awaited()
+
+    expected_calls = [
+        call(
+            peer_id=(settings.GROUP_ID_COEFFICIENT + group),
+            message=text,
+            attachment=attachment,
+            random_id=0,
+        )
+        for group in groups_ids
+    ]
+    bot.api.messages.send.assert_has_calls(expected_calls, any_order=True)
+
+
+@pytest.mark.asyncio
+async def test_all_groups_broadcast_permission_failed(mocker):
+    log_mock = mocker.patch("app.broadcast.logger.warning")
+    text = "hello world!"
+    attachment = ["123"]
+    groups_ids = [1, 2, 3]
+    from_id = 1
+
+    mocker.patch.object(bot, "api", autospec=True)
+
+    error = VKAPIErrorPermissionDenied(
+        error_msg="Permission to perform this action is denied by user"
+    )
+    bot.api.messages.send = AsyncMock(side_effect=error)
+
+    get_groups_ids_mock = mocker.patch(
+        "app.broadcast.get_groups_ids",
+        new_callable=AsyncMock,
+    )
+    get_groups_ids_mock.return_value = groups_ids
+
+    connect_message_to_group_mock = mocker.patch(
+        "app.broadcast.connect_message_to_group",
+        new_callable=AsyncMock,
+    )
+    connect_message_to_group_mock.return_value = None
+
+    delete_group_mock = mocker.patch(
+        "app.broadcast.delete_group", new_callable=AsyncMock
+    )
+    delete_group_mock.return_value = None
+
+    result = await all_groups_broadcast(from_id, text, attachment)
+
+    assert result == ("ВСЕ", (False, False, False), "ВСЕ")
+    bot.api.messages.send.assert_awaited()
+    get_groups_ids_mock.assert_awaited()
+    get_groups_ids_mock.assert_called_once()
+    log_mock.assert_called_with(error)
+
+
+@pytest.mark.asyncio
+async def test_all_groups_broadcast_failed(mocker):
+    log_mock = mocker.patch("app.broadcast.logger.error")
+    text = "hello world!"
+    attachment = ["123"]
+    from_id = 1
+
+    mocker.patch.object(bot, "api", autospec=True)
+
+    error = DBError("Error")
+
+    get_groups_ids_mock = mocker.patch(
+        "app.broadcast.get_groups_ids",
+        new_callable=AsyncMock,
+    )
+
+    get_groups_ids_mock.side_effect = error
+
+    result = await all_groups_broadcast(from_id, text, attachment)
+
+    assert result == ("не найден", (False,), "не найден")
+    log_mock.assert_called_with(error)
+    pass
 
 
 @pytest.mark.asyncio
