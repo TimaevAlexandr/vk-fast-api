@@ -1,16 +1,10 @@
 from datetime import datetime
 
-from sqlalchemy import (
-    Column,
-    DateTime,
-    Integer,
-    PickleType,
-    Text,
-)
+from sqlalchemy import JSON, Column, DateTime, Integer, Text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship
 
-from app.db.common import Base, db_connect
+from .common import Base, db_connect
 
 
 class Message(Base):  # type: ignore[valid-type,misc]
@@ -18,24 +12,26 @@ class Message(Base):  # type: ignore[valid-type,misc]
 
     id = Column(Integer, primary_key=True)
     text = Column(Text)
-    attachment = Column(PickleType)
-    date = Column(DateTime, nullable=False)
+    attachments = Column(JSON)
     author = Column(Integer, nullable=False)
-    groups = relationship("GroupMessage")
+    date = Column(DateTime, nullable=False, default=datetime.utcnow)
+    groups = relationship("GroupMessage", back_populates="message")
 
 
 @db_connect
 async def add_message(
     text: str | None,
-    attachment: list | None,
-    date: datetime,
+    attachments: list | None,
     author: int,
     *,
     session: AsyncSession,
 ) -> Message:
     message = Message(
-        text=text, attachment=attachment, date=date, author=author
+        text=text,
+        attachments=attachments,
+        author=author,
     )
     session.add(message)
     await session.commit()
+    await session.refresh(message)
     return message

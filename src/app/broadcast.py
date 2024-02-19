@@ -7,10 +7,12 @@ import aiohttp
 from vkbottle import VKAPIError
 
 import settings
-from app.db.groups import (
+from app.db import (
+    Message,
+    add_message,
+    connect_message_to_group,
     delete_group,
     get_group_ids_by_course,
-    connect_message_to_group,
 )
 from app.exceptions import DBError
 from app.vk import bot
@@ -42,7 +44,7 @@ async def group_broadcast(
 
 async def course_broadcast(
     course: int,
-    from_id: int,
+    message: Message,
     text: str | None,
     attachment: list | None,
 ) -> tuple[int, tuple[bool]]:
@@ -59,7 +61,7 @@ async def course_broadcast(
     for group in ids:
         res = await group_broadcast(group, text, attachment)
         result.append(res)
-        await connect_message_to_group(group, text, attachment, datetime.now(), from_id, res)
+        await connect_message_to_group(group, message.id, res)
     return course, tuple(result)  # type: ignore[return-value]
 
 
@@ -73,9 +75,10 @@ async def broadcast(
         logger.error("Courses is not numeric")
         return None
     coroutines: list[Coroutine] = []
+    message = await add_message(text, attachment, from_id)
     for course in sorted(set(courses)):
         coroutines.append(
-            course_broadcast(int(course), from_id, text, attachment)
+            course_broadcast(int(course), message, text, attachment)
         )
     done = await asyncio.gather(*coroutines)
     return tuple(done)  # type: ignore[return-value]

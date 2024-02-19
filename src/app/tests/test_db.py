@@ -8,13 +8,16 @@ from app.db.groups import (
     StudentGroup,
     GroupMessage,
     add_group,
+    add_message,
     change_group_course,
+    connect_message_to_group,
     delete_group,
+    get_course_by_group_id,
     get_group_ids_by_course,
     get_groups_ids,
     connect_message_to_group,
 )
-from app.db.messages import Message
+from app.db.common import db_connect, engine
 from app.exceptions import DBError
 
 
@@ -39,6 +42,15 @@ async def test_ids_by_course(init_db):
     course = 2022
     await add_group(group_id, course)
     assert [group_id] == await get_group_ids_by_course(course)
+
+
+@pytest.mark.asyncio
+async def test_get_course_by_group_id(init_db):
+    group_id = 2
+    course = 2022
+    await add_group(group_id, course)
+    assert course == await get_course_by_group_id(group_id)
+    assert await get_course_by_group_id(3456) is None
 
 
 @pytest.mark.asyncio
@@ -115,31 +127,27 @@ async def test_db_connect_raises_unexpected_error(mocker, init_db):
 
 @pytest.mark.asyncio
 async def test_add_message(init_db):
+    text = "hello world"
+    attachments = []
+    author = 1
+    message = await add_message(text, attachments, author)
+
+    assert message.id is not None
+
+
+@pytest.mark.asyncio
+async def test_connect_message_to_group(init_db):
     group_id = 1
     course = 1
     await add_group(group_id, course)
-    message_id = 1
     text = "hello world"
-    attachment = []
-    date = datetime.now()
+    attachments = []
     author = 1
+    message = await add_message(text, attachments, author)
     recieved = True
-    await connect_message_to_group(group_id, text, attachment, date, author, recieved)
-    async with engine.connect() as conn:
-        result_message = (
-            await conn.execute(
-                select(Message).where(Message.id == message_id)
-            )
-        ).first()
-        result_association = (
-            await conn.execute(
-                select(GroupMessage).where(GroupMessage.student_groups_id == group_id)
-            )
-        ).first()
-    assert result_message.text == text
-    assert result_message.attachment == attachment
-    assert result_message.date == date
-    assert result_message.author == author
-    assert result_association.messages_id == message_id
-    assert result_association.received == recieved
+    group_message = await connect_message_to_group(
+        group_id, message.id, recieved
+    )
 
+    assert group_message.student_group_id == group_id
+    assert group_message.message_id == message.id

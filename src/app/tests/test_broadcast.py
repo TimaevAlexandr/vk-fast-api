@@ -6,6 +6,7 @@ from vkbottle.exception_factory.code_exception import CodeExceptionMeta
 
 import settings
 from app.broadcast import broadcast, course_broadcast, group_broadcast
+from app.db import Message
 from app.exceptions import DBError
 from app.vk import bot
 
@@ -110,7 +111,16 @@ async def test_course_broadcast_empty(mocker):
     )
     get_group_ids_by_course_mock.return_value = []
 
-    result = await course_broadcast(course, from_id, text, attachment)
+    add_message_mock = mocker.patch(
+        "app.broadcast.add_message", new_callable=AsyncMock
+    )
+    add_message_mock.return_value = Message(
+        text=text, attachments=attachment, author=from_id
+    )
+
+    result = await course_broadcast(
+        course, add_message_mock.return_value, text, attachment
+    )
 
     assert result == (course, (False,))
     get_group_ids_by_course_mock.assert_awaited()
@@ -133,7 +143,16 @@ async def test_course_broadcast_exception(mocker):
         "app.broadcast.get_group_ids_by_course", new_callable=AsyncMock
     ).side_effect = error
 
-    result = await course_broadcast(course, from_id, text, attachment)
+    add_message_mock = mocker.patch(
+        "app.broadcast.add_message", new_callable=AsyncMock
+    )
+    add_message_mock.return_value = Message(
+        text=text, attachments=attachment, author=from_id
+    )
+
+    result = await course_broadcast(
+        course, add_message_mock.return_value, text, attachment
+    )
 
     assert result == (course, (False,))
     log_mock.assert_called_with(error)
@@ -158,7 +177,21 @@ async def test_course_broadcast_successful(mocker):
     )
     group_broadcast_mock.return_value = True
 
-    result = await course_broadcast(course, from_id, text, attachment)
+    add_message_mock = mocker.patch(
+        "app.broadcast.add_message", new_callable=AsyncMock
+    )
+    add_message_mock.return_value = Message(
+        text=text, attachments=attachment, author=from_id
+    )
+
+    connect_message_to_group_mock = mocker.patch(
+        "app.broadcast.connect_message_to_group", new_callable=AsyncMock
+    )
+    connect_message_to_group_mock.return_value = None
+
+    result = await course_broadcast(
+        course, add_message_mock.return_value, text, attachment
+    )
 
     assert result == (course, (True,) * 3)
     get_group_ids_by_course_mock.assert_awaited()
@@ -187,15 +220,27 @@ async def test_broadcast_empty(mocker):
     )
     course_broadcast_mock.return_value = (False,)
 
+    add_message_mock = mocker.patch(
+        "app.broadcast.add_message", new_callable=AsyncMock
+    )
+    add_message_mock.return_value = Message(
+        text=text, attachments=attachment, author=from_id
+    )
+
+    connect_message_to_group_mock = mocker.patch(
+        "app.broadcast.connect_message_to_group", new_callable=AsyncMock
+    )
+    connect_message_to_group_mock.return_value = None
+
     result = await broadcast(courses, from_id, text, attachment)
 
     assert result == ((False,),) * 3
     course_broadcast_mock.assert_awaited()
     course_broadcast_mock.assert_has_awaits(
         [
-            mocker.call(0, from_id, text, attachment),
-            mocker.call(2, from_id, text, attachment),
-            mocker.call(3, from_id, text, attachment),
+            mocker.call(0, add_message_mock.return_value, text, attachment),
+            mocker.call(2, add_message_mock.return_value, text, attachment),
+            mocker.call(3, add_message_mock.return_value, text, attachment),
         ]
     )
 
@@ -214,15 +259,27 @@ async def test_broadcast_successful(mocker):
     )
     course_broadcast_mock.return_value = (True,)
 
+    add_message_mock = mocker.patch(
+        "app.broadcast.add_message", new_callable=AsyncMock
+    )
+    add_message_mock.return_value = Message(
+        text=text, attachments=attachment, author=from_id
+    )
+
+    connect_message_to_group_mock = mocker.patch(
+        "app.broadcast.connect_message_to_group", new_callable=AsyncMock
+    )
+    connect_message_to_group_mock.return_value = None
+
     result = await broadcast(courses, from_id, text, attachment)
 
     assert result == ((True,),) * 3
     course_broadcast_mock.assert_awaited()
     course_broadcast_mock.assert_has_awaits(
         [
-            mocker.call(0, from_id, text, attachment),
-            mocker.call(2, from_id, text, attachment),
-            mocker.call(3, from_id, text, attachment),
+            mocker.call(0, add_message_mock.return_value, text, attachment),
+            mocker.call(2, add_message_mock.return_value, text, attachment),
+            mocker.call(3, add_message_mock.return_value, text, attachment),
         ]
     )
 
