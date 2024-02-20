@@ -2,11 +2,14 @@ from hmac import compare_digest
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
 import app as App
 import settings
 from app.db.admins import Admin
 from app.db.groups import get_course_by_group_id
+from app.db import GroupMessage, Message, get_course_by_group_id
+from app.db.common import engine
 from app.routes import app
 from app.vk import bot
 
@@ -143,6 +146,7 @@ async def test_callback_full_event(mocker, init_db, groups):
     )
 
 
+
 @pytest.fixture()
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
@@ -196,3 +200,104 @@ async def test_fix_course_change(
             )
         ]
     )
+
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "stat_request, stat_answer",
+    [
+        (
+            "Статистика 1",
+            "1 курс - 1 сообщений:\nГруппа 1: 1/1",
+        ),
+        (
+            "Статистика",
+            "1 курс - 1 сообщений:\nГруппа 1: 1/1\n"
+            "2 курс - 1 сообщений:\nГруппа 2: 1/1\n"
+            "3 курс - 1 сообщений:\nГруппа 3: 1/1",
+        ),
+    ],
+)
+async def test_statistics(
+    mocker, init_db, groups, messages, stat_request, stat_answer
+):
+    client = TestClient(app)
+    data = {
+        "type": "message_new",
+        "group_id": 0,
+        "object": {
+            "message": {
+                "from_id": 1,
+                "peer_id": 1,
+                "text": stat_request,
+                "date": 0,
+                "id": 0,
+                "out": 0,
+            },
+            "client_info": {},
+        },
+    }
+    mocker.patch("app.bot.broadcast.settings.ADMINS", [1])
+    mocker.patch.object(bot, "api", autospec=True)
+    bot.api.messages.send = mocker.AsyncMock()
+    bot.api.messages.send.return_value = [1, 2, 3]
+    response = client.post(
+        "/api/callback",
+        json=data,
+    )
+
+    assert response.status_code == 200
+    assert response.text == "ok"
+
+    bot.api.messages.send.assert_has_awaits(
+        [
+            mocker.call(
+                peer_ids=[1],
+                message=stat_answer,
+                random_id=0,
+            )
+        ]
+    )
+
+
+@pytest.mark.asyncio
+async def test_adding_message_to_db(mocker, init_db, groups):
+    client = TestClient(app)
+    text = "Привет мир!"
+    data = {
+        "type": "message_new",
+        "group_id": 0,
+        "object": {
+            "message": {
+                "from_id": 1,
+                "peer_id": 1,
+                "text": f"Рассылка: 1234 {text}",
+                "date": 0,
+                "id": 0,
+                "out": 0,
+            },
+            "client_info": {},
+        },
+    }
+    mocker.patch("app.bot.broadcast.settings.ADMINS", [1])
+    mocker.patch.object(bot, "api", autospec=True)
+
+    bot.api.messages.send = mocker.AsyncMock()
+    bot.api.messages.send.return_value = [1, 2, 3]
+
+    client.post("/api/callback", json=data)
+
+    async with engine.connect() as conn:
+        result = (
+            await conn.execute(
+                select(
+                    Message.id,
+                    GroupMessage.student_group_id,
+                ).outerjoin(
+                    GroupMessage, GroupMessage.message_id == Message.id
+                )
+            )
+        ).all()
+
+    assert result == [(1, 1), (1, 2), (1, 3)]

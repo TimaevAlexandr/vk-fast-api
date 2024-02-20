@@ -2,11 +2,11 @@ from typing import AsyncGenerator
 
 import pytest
 from sqlalchemy.engine import Connection
-
 from app.db.admins import add_admin
 from app.db.common import Base, engine
 from app.db.faculties import add_faculty
 from app.db.groups import add_group
+from app.db.messages import add_message, connect_message_to_group
 
 
 @pytest.mark.asyncio
@@ -48,4 +48,14 @@ async def faculties(init_db):
 @pytest.fixture()
 async def admins(init_db):
     await add_admin(1, False, 1)
+    yield
+
+
+@pytest.mark.asyncio
+@pytest.fixture()
+async def messages(init_db):
+    message = await add_message(text="Hello world", attachments=[], author=1)
+    await connect_message_to_group(1, message.id, True)
+    await connect_message_to_group(2, message.id, True)
+    await connect_message_to_group(3, message.id, True)
     yield

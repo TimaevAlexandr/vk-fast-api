@@ -52,7 +52,7 @@ ADDED_SUPER_ADMIN_SUCCESSFULLY = (
 EDITED_SUCCESSFULLY = (
     "Ваш курс успешно изменен!\n\n"
     "Теперь вам будут приходить актуальная информация "
-    "для $(course)s курса."
+    "для %(course)s курса."
 )
 
 NO_CHAT = (

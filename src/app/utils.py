@@ -96,16 +96,8 @@ async def handle_course(
     return _course
 
 
-async def handle_group(
-    message: Message, text: str
-) -> tuple[int | None, str | None]:
-    group_id: int = message.peer_id - settings.GROUP_ID_COEFFICIENT
-    groups_ids = await get_groups_ids()
-
-    if group_id in groups_ids:
-        await message.answer(text)
-        return None, text
-    return group_id, None
+def get_group_id(message: Message) -> int:
+    return int(message.peer_id) - settings.GROUP_ID_COEFFICIENT
 
 
 async def handle_faculty(
@@ -152,3 +144,7 @@ async def handle_admin_id(
             return False
 
     return admin_id_int
+
+async def group_is_added(group_id: int) -> bool:
+    return group_id in await get_groups_ids()
+

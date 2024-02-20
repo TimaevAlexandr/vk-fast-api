@@ -9,6 +9,11 @@ from vkbottle import VKAPIError
 import settings
 from app.db.admins import get_admin_by_id
 from app.db.faculties import get_faculty_name
+from app.db.messages import (
+    Message,
+    add_message,
+    connect_message_to_group,
+    )
 from app.db.groups import (
     connect_message_to_group,
     delete_group,
@@ -46,7 +51,7 @@ async def group_broadcast(
 
 async def course_broadcast(
     course: int,
-    from_id: int,
+    message: Message,
     text: str | None,
     attachment: list | None,
     faculty_id: int,
@@ -107,7 +112,7 @@ async def broadcast(
             return None
 
         coroutines: list[Coroutine] = []
-
+        message = await add_message(text, attachment, from_id)
         processed_courses = await proc_course(courses)
         if not processed_courses and courses != "всем":
             logger.error("Courses is not valid")

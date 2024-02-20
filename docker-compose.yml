@@ -14,6 +14,9 @@ networks:
   backend:
     driver: bridge
 
+volumes:
+  postgres_data:
+
 services:
   backend:
     build:
@@ -43,3 +46,5 @@ services:
       <<: *healthcheck_defaults
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
