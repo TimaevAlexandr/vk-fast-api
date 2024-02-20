@@ -5,11 +5,11 @@ from sqlalchemy import select
 from sqlalchemy.exc import DBAPIError
 
 from app.db.common import db_connect, engine
+from app.db.messages import add_message
 from app.db.groups import (
     GroupMessage,
     StudentGroup,
     add_group,
-    add_message,
     change_group_course,
     connect_message_to_group,
     delete_group,

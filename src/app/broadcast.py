@@ -11,8 +11,7 @@ from app.db.admins import get_admin_by_id
 from app.db.faculties import get_faculty_name
 from app.db.messages import (
     Message,
-    add_message,
-    connect_message_to_group,
+    add_message
     )
 from app.db.groups import (
     connect_message_to_group,
@@ -72,13 +71,12 @@ async def course_broadcast(
         res = await group_broadcast(group, text, attachment)
         result.append(res)
         await connect_message_to_group(
-            group, text, attachment, datetime.now(), from_id, res
+            group, text, attachment
         )
     return course, tuple(result), faculty_name  # type: ignore[return-value]
 
 
 async def all_groups_broadcast(
-    from_id: int,
     text: str | None,
     attachment: list | None,
 ):
@@ -94,7 +92,7 @@ async def all_groups_broadcast(
         result.append(res)
         print(group_id)
         await connect_message_to_group(
-            group_id, text, attachment, datetime.now(), from_id, res
+            group_id, text, attachment
         )
     return "ВСЕ", tuple(result), "ВСЕ"  # type: ignore[return-value]
 
@@ -112,7 +110,9 @@ async def broadcast(
             return None
 
         coroutines: list[Coroutine] = []
+
         message = await add_message(text, attachment, from_id)
+
         processed_courses = await proc_course(courses)
         if not processed_courses and courses != "всем":
             logger.error("Courses is not valid")
@@ -122,7 +122,7 @@ async def broadcast(
             # Суперпользователь
             if courses == "всем":
                 coroutines.append(
-                    all_groups_broadcast(admin.id, text, attachment)
+                    all_groups_broadcast(text, attachment)
                 )
             else:
                 for course, faculty_id in await make_pairs(
@@ -130,7 +130,7 @@ async def broadcast(
                 ):
                     coroutines.append(
                         course_broadcast(
-                            int(course), from_id, text, attachment, faculty_id
+                            int(course), message, text, attachment, faculty_id
                         )
                     )
         else:
@@ -139,7 +139,7 @@ async def broadcast(
                 coroutines.append(
                     course_broadcast(
                         int(course),
-                        from_id,
+                        message,
                         text,
                         attachment,
                         admin.faculty_id,

@@ -12,12 +12,15 @@ from .groups import (
     get_groups_ids,
 )
 from .messages import Message, add_message
-
+from .admins import Admin
+from .faculties import Faculty
 __all__ = (
     "Base",
     "StudentGroup",
     "GroupMessage",
     "Message",
+    "Admin",
+    "Faculty",
     "add_group",
     "change_group_course",
     "connect_message_to_group",

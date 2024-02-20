@@ -17,10 +17,11 @@ from app.utils import (
     group_is_added,
     handle_course,
 )
-from app.db.messages import count_messages
-
+from app.db import count_messages
 admin_labeler = BotLabeler()
 admin_labeler.vbml_ignore_case = True
+
+
 
 regex = r"[Сс]татистика(?: (\d))?"
 

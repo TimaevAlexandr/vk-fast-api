@@ -51,6 +51,15 @@ async def make_pairs(courses: set, faculties: str | None):
 
     return pairs
 
+async def handle_group(
+    message: Message, text: str
+) -> tuple[int | None, str | None]:
+    group_id: int = message.peer_id - settings.GROUP_ID_COEFFICIENT
+    groups_ids = await get_groups_ids()
+    if group_id in groups_ids:
+        await message.answer(text)
+        return None, text
+    return group_id, None
 
 def parse_add_regex(
     message: Message,

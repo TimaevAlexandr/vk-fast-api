@@ -5,8 +5,8 @@ from sqlalchemy.engine import Connection
 from app.db.admins import add_admin
 from app.db.common import Base, engine
 from app.db.faculties import add_faculty
-from app.db.groups import add_group
-from app.db.messages import add_message, connect_message_to_group
+from app.db.groups import add_group, connect_message_to_group
+from app.db.messages import add_message
 
 
 @pytest.mark.asyncio
