@@ -1,6 +1,6 @@
 import pytest
 from pytest_lazy_fixtures import lf
-from vkbottle.user import Message
+from vkbottle.user import Message as VKMessage
 
 from app.bot.broadcast import sharing_text
 from app.db.admins import Admin
@@ -126,7 +126,7 @@ def message_with_fwd(mocker, message_simple):
     ],
 )
 async def test_sharing_text(
-    message: Message,
+    message: VKMessage,
     broadcast_result: tuple[tuple[int, tuple[bool]]],
     expected_result: str,
     mocker,

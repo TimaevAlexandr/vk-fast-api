@@ -6,10 +6,10 @@ from sqlalchemy import select
 
 import app as App
 import settings
-from app.db.admins import Admin
-from app.db.groups import get_course_by_group_id
 from app.db import GroupMessage, Message, get_course_by_group_id
+from app.db.admins import Admin
 from app.db.common import engine
+from app.db.groups import get_course_by_group_id
 from app.routes import app
 from app.vk import bot
 
@@ -82,7 +82,7 @@ async def test_callback_event(mocker):
     mock_process_event.assert_awaited_once_with(data)
 
 
-@pytest.fixture()
+
 @pytest.mark.asyncio
 async def test_callback_full_event(mocker, init_db, groups):
     from_id = 1
@@ -147,7 +147,6 @@ async def test_callback_full_event(mocker, init_db, groups):
 
 
 
-@pytest.fixture()
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "test_group_id, new_course_value, new_course_text",
@@ -200,7 +199,6 @@ async def test_fix_course_change(
             )
         ]
     )
-
 
 
 @pytest.mark.asyncio
@@ -272,7 +270,7 @@ async def test_adding_message_to_db(mocker, init_db, groups):
             "message": {
                 "from_id": 1,
                 "peer_id": 1,
-                "text": f"Рассылка: 1234 {text}",
+                "text": f"Рассылка: 1234. {text}",
                 "date": 0,
                 "id": 0,
                 "out": 0,
@@ -280,7 +278,8 @@ async def test_adding_message_to_db(mocker, init_db, groups):
             "client_info": {},
         },
     }
-    mocker.patch("app.bot.broadcast.settings.ADMINS", [1])
+    # mocker.patch("app.bot.broadcast.settings.ADMINS", [1])
+    
     mocker.patch.object(bot, "api", autospec=True)
 
     bot.api.messages.send = mocker.AsyncMock()

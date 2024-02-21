@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, JSON, Text
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, Text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship
 
@@ -16,8 +16,7 @@ class Message(Base):  # type: ignore[valid-type,misc]
     date = Column(DateTime, nullable=False, default=datetime.utcnow)
     author = Column(Integer, ForeignKey("admins.id"), nullable=False)
     admins = relationship("Admin")
-    groups = relationship("GroupMessage", back_populates="message")
-
+    student_groups = relationship("GroupMessage", back_populates="message")
 
 
 @db_connect

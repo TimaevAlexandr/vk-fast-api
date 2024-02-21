@@ -1,4 +1,6 @@
+from .admins import Admin
 from .common import Base
+from .faculties import Faculty
 from .groups import (
     GroupMessage,
     StudentGroup,
@@ -12,8 +14,7 @@ from .groups import (
     get_groups_ids,
 )
 from .messages import Message, add_message
-from .admins import Admin
-from .faculties import Faculty
+
 __all__ = (
     "Base",
     "StudentGroup",

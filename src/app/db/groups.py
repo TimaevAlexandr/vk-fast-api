@@ -1,10 +1,10 @@
 from datetime import datetime
 from typing import Iterable
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, and_,  case, func
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, and_, case, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql.expression import delete, insert, select, update
+from sqlalchemy.sql.expression import delete, insert, select, update, exists
 
 from .common import Base, db_connect
 
@@ -19,7 +19,6 @@ class StudentGroup(Base):  # type: ignore[valid-type,misc]
     messages = relationship("GroupMessage", back_populates="group")
 
 
-
 class GroupMessage(Base):  # type: ignore[valid-type,misc]
     __tablename__ = "group_message"
 
@@ -28,7 +27,7 @@ class GroupMessage(Base):  # type: ignore[valid-type,misc]
     )
     message_id = Column(ForeignKey("messages.id"), primary_key=True)
     received = Column(Boolean, nullable=False)
-    message = relationship("Message", back_populates="groups")
+    message = relationship("Message", back_populates="student_groups")
     group = relationship("StudentGroup", back_populates="messages")
 
 
@@ -109,10 +108,6 @@ async def get_group_ids_by_faculty_id(
     )
     return [group_id[0].id for group_id in group_ids]
 
-@db_connect
-async def get_groups_ids(*, session: AsyncSession) -> Iterable[int]:
-    group_ids = (await session.execute(select(StudentGroup))).all()
-    return [group_id[0].id for group_id in group_ids]
 
 
 @db_connect
@@ -163,3 +158,7 @@ async def get_group_ids_by_course_faculty_id(
         )
     )
     return [group_id[0] for group_id in group_ids]
+
+@db_connect
+async def group_is_added(group_id: int, *, session: AsyncSession) -> bool:
+    return await session.scalar(select(exists().where(StudentGroup.id == group_id)))

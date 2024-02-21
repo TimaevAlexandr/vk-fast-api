@@ -1,9 +1,9 @@
 import re
 
-from vkbottle.user import Message
-
+from vkbottle.user import Message as VKMessage
+ 
 import settings
-from app.db.admins import Admin, get_all_admins, get_all_superusers
+from app.db.admins import Admin, get_all_superusers, get_admin_by_id
 from app.db.faculties import get_faculty_id
 from app.db.groups import get_groups_ids
 from settings import ADMINS
@@ -44,25 +44,21 @@ async def make_pairs(courses: set, faculties: str | None):
         return [(course, None) for course in crs]
 
     fac_list = faculties.split(" ")
-    
-    fac_ids = [await get_faculty_id(faculty.strip()) for faculty in fac_list if faculty]
+
+    fac_ids = [
+        await get_faculty_id(faculty.strip())
+        for faculty in fac_list
+        if faculty
+    ]
 
     pairs = [(course, faculty_id) for course in crs for faculty_id in fac_ids]
 
     return pairs
 
-async def handle_group(
-    message: Message, text: str
-) -> tuple[int | None, str | None]:
-    group_id: int = message.peer_id - settings.GROUP_ID_COEFFICIENT
-    groups_ids = await get_groups_ids()
-    if group_id in groups_ids:
-        await message.answer(text)
-        return None, text
-    return group_id, None
+
 
 def parse_add_regex(
-    message: Message,
+    message: VKMessage,
 ) -> tuple[str | None, str | None] | tuple[None, None]:
     add_pattern = re.compile(r"^Добавить (\S+)(?:\s*([^\[\]]+))?$")
     match = add_pattern.match(message.text)
@@ -87,7 +83,7 @@ async def proc_course(courses):
 
 
 async def handle_course(
-    message: Message, course: str | int, check: bool = False
+    message: VKMessage, course: str | int, check: bool = False
 ) -> int:
     _course = process_course(course)
 
@@ -105,12 +101,12 @@ async def handle_course(
     return _course
 
 
-def get_group_id(message: Message) -> int:
+def get_group_id(message: VKMessage) -> int:
     return int(message.peer_id) - settings.GROUP_ID_COEFFICIENT
 
 
 async def handle_faculty(
-    message: Message, text: str, faculty: str
+    message: VKMessage, text: str, faculty: str
 ) -> tuple[int | None, str | None, bool | None]:
     if faculty == "суперадмин":
         return None, None, True
@@ -126,8 +122,8 @@ async def handle_faculty(
 
 
 async def handle_admin_id(
-    message: Message, admin_id: str, need_in_table: bool
-) -> int | bool:
+    message: VKMessage, admin_id: str, need_in_table: bool
+) -> int | bool | Admin:
     super_admins = await get_all_superusers() + ADMINS
 
     if message.from_id not in super_admins:
@@ -146,14 +142,11 @@ async def handle_admin_id(
         not need_in_table
     ):  # если необходимо условие что такой не должен быть в таблице
         # для добавления админа
-        all_admins: list[Admin] = await get_all_admins()
+        admin = get_admin_by_id(admin_id_int)
 
-        if any(int(admin.id) == admin_id_int for admin in all_admins):
+        if admin and not admin.is_archived:
             await message.answer("Такой админ уже существует!")
             return False
-
+        elif admin and admin.is_archived:
+            return admin # если есть в архиве и мы хотим восстановить возвращаем ссылку
     return admin_id_int
-
-async def group_is_added(group_id: int) -> bool:
-    return group_id in await get_groups_ids()
-

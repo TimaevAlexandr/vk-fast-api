@@ -1,13 +1,9 @@
-from datetime import datetime
-
 import pytest
 from sqlalchemy import select
 from sqlalchemy.exc import DBAPIError
-
+import settings
 from app.db.common import db_connect, engine
-from app.db.messages import add_message
 from app.db.groups import (
-    GroupMessage,
     StudentGroup,
     add_group,
     change_group_course,
@@ -16,8 +12,9 @@ from app.db.groups import (
     get_course_by_group_id,
     get_group_ids_by_course,
     get_groups_ids,
+    group_is_added,
 )
-from app.db.common import db_connect, engine
+from app.db.messages import add_message
 from app.exceptions import DBError
 
 
@@ -164,3 +161,10 @@ async def test_connect_message_to_group(init_db):
 
     assert group_message.student_group_id == group_id
     assert group_message.message_id == message.id
+
+@pytest.mark.asyncio
+async def test_group_is_added(mocker, init_db):
+    for i in [1,2,3]:
+        await add_group(i,i,i)
+    for group_id, expected in zip([1,2,3,4], [True, True, True, False]):
+        assert await group_is_added(group_id) == expected

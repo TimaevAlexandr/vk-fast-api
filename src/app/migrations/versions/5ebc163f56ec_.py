@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 28d9be2b61dd
+Revision ID: 5ebc163f56ec
 Revises: 
-Create Date: 2024-02-20 07:44:43.278240
+Create Date: 2024-02-21 08:16:43.260812
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '28d9be2b61dd'
+revision: str = '5ebc163f56ec'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -39,10 +39,10 @@ def upgrade() -> None:
     )
     
     faculty_table = sa.Table(
-        'faculty',
-        sa.MetaData(),
-        sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('name', sa.Text(), nullable=False)
+    'faculty',
+    sa.MetaData(),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.Text(), nullable=False)
     )
     op.bulk_insert(faculty_table, [{'name': faculty} for faculty in faculties])
     

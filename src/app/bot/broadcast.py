@@ -2,7 +2,7 @@ import logging
 import re
 
 from vkbottle.bot import BotLabeler
-from vkbottle.user import Message
+from vkbottle.user import VKMessage as VKMessage
 
 import settings
 from app.broadcast import broadcast
@@ -33,7 +33,7 @@ def get_results(broadcast_result):
     return "\n".join(results)
 
 
-def get_text(message: Message, text: str | None) -> str | None:
+def get_text(message: VKMessage, text: str | None) -> str | None:
     if message.fwd_messages:
         logger.info(f"Found forward message: {message.fwd_messages[0].text}")
         return "\n\n".join(
@@ -46,7 +46,7 @@ def get_text(message: Message, text: str | None) -> str | None:
     return text
 
 
-def get_attachments(message: Message) -> str | None:
+def get_attachments(message: VKMessage) -> str | None:
     attachments = message.get_wall_attachment()
     if attachments:
         logger.info(f"Found attachments: {attachments[0]}")
@@ -54,7 +54,7 @@ def get_attachments(message: Message) -> str | None:
     return None
 
 
-def parse_text(message: Message) -> tuple[str, str | None, str]:
+def parse_text(message: VKMessage) -> tuple[str, str | None, str]:
     res = re.match(regex, message.text)
     res_all = re.match(regex_all, message.text)
     if not res and not res_all:
@@ -76,7 +76,7 @@ def parse_text(message: Message) -> tuple[str, str | None, str]:
 
 @broadcast_labeler.message(regex=regex)
 @broadcast_labeler.message(regex=regex_all)
-async def sharing_text(message: Message) -> None:
+async def sharing_text(message: VKMessage) -> None:
     all_admins = [
         admin.id for admin in await get_all_admins()
     ] + settings.ADMINS
@@ -115,4 +115,9 @@ async def sharing_text(message: Message) -> None:
             text_answer = "Не удалось отправить рассылку."
     else:
         text_answer = "Не удалось отправить рассылку."
-    await message.answer(f"{text_answer}\n\n{get_results(broadcast_result)}")
+    ouptut_result = get_results(broadcast_result)
+
+    if ouptut_result:
+        await message.answer(f"{text_answer}\n\n{ouptut_result}")
+    else:
+        await message.answer(f"{text_answer}")

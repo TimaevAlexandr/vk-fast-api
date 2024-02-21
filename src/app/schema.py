@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 
-class Message(BaseModel):
+class MessageSchema(BaseModel):
     from_id: int
     peer_id: int
     text: str
@@ -14,7 +14,7 @@ class Message(BaseModel):
 
 
 class MessageObject(BaseModel):
-    message: Message
+    message: MessageSchema
     client_info: dict | None
 
 

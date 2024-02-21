@@ -273,7 +273,6 @@ async def test_course_broadcast_exception(mocker):
         text=text, attachments=attachment, author=from_id
     )
 
-
     get_group_ids_by_course_faculty_id_mock.side_effect = error
     get_faculty_name_mock = mocker.patch(
         "app.broadcast.get_faculty_name", new_callable=AsyncMock
@@ -309,7 +308,6 @@ async def test_course_broadcast_successful(mocker):
         "app.broadcast.group_broadcast", new_callable=AsyncMock
     )
     group_broadcast_mock.return_value = True
-
 
     get_faculty_name_mock = mocker.patch(
         "app.broadcast.get_faculty_name", new_callable=AsyncMock
@@ -379,7 +377,6 @@ async def test_broadcast_empty(mocker):
     )
     course_broadcast_mock.return_value = (False,)
 
-
     add_message_mock = mocker.patch(
         "app.broadcast.add_message", new_callable=AsyncMock
     )
@@ -394,12 +391,16 @@ async def test_broadcast_empty(mocker):
     result = await broadcast(courses, faculties, from_id, text, attachment)
     assert (
         result == ((False,),) * 2
-    )  # broadcast.proc_course remove 0 from courses 
+    )  # broadcast.proc_course remove 0 from courses
     course_broadcast_mock.assert_awaited()
     course_broadcast_mock.assert_has_awaits(
         [
-            mocker.call(2, add_message_mock.return_value, text, attachment, faculty_id),
-            mocker.call(3, add_message_mock.return_value, text, attachment, faculty_id),
+            mocker.call(
+                2,from_id , text, attachment, faculty_id
+            ),
+            mocker.call(
+                3, from_id, text, attachment, faculty_id
+            ),
         ]
     )
 
@@ -439,8 +440,12 @@ async def test_broadcast_successful(mocker):
     course_broadcast_mock.assert_awaited()
     course_broadcast_mock.assert_has_awaits(
         [
-            mocker.call(2, add_message_mock.return_value, text, attachment, faculty_id),
-            mocker.call(3, add_message_mock.return_value, text, attachment, faculty_id),
+            mocker.call(
+                2, from_id, text, attachment, faculty_id
+            ),
+            mocker.call(
+                3, from_id, text, attachment, faculty_id
+            ),
         ]
     )
 

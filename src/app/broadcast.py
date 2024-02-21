@@ -9,19 +9,17 @@ from vkbottle import VKAPIError
 import settings
 from app.db.admins import get_admin_by_id
 from app.db.faculties import get_faculty_name
-from app.db.messages import (
-    Message,
-    add_message
-    )
 from app.db.groups import (
     connect_message_to_group,
     delete_group,
     get_group_ids_by_course_faculty_id,
     get_groups_ids,
 )
+from app.db.messages import Message, add_message
 from app.exceptions import DBError
 from app.utils import make_pairs, proc_course
 from app.vk import bot
+from app.db.groups import GroupMessage
 
 logger = logging.getLogger(__name__)
 
@@ -50,10 +48,10 @@ async def group_broadcast(
 
 async def course_broadcast(
     course: int,
-    message: Message,
     text: str | None,
     attachment: list | None,
     faculty_id: int,
+    message: GroupMessage | None,
 ) -> tuple[int, tuple[bool], str]:
     faculty_name = await get_faculty_name(faculty_id)
     try:
@@ -70,16 +68,16 @@ async def course_broadcast(
     for group in ids:
         res = await group_broadcast(group, text, attachment)
         result.append(res)
-        await connect_message_to_group(
-            group, text, attachment
-        )
+        await connect_message_to_group(group, message, res)
     return course, tuple(result), faculty_name  # type: ignore[return-value]
 
 
 async def all_groups_broadcast(
+    from_id: int,
     text: str | None,
     attachment: list | None,
 ):
+    print("GROUP_IDENTT")
     try:
         all_groups_ids = await get_groups_ids()
     except DBError as error:
@@ -90,10 +88,8 @@ async def all_groups_broadcast(
     for group_id in all_groups_ids:
         res = await group_broadcast(group_id, text, attachment)
         result.append(res)
-        print(group_id)
-        await connect_message_to_group(
-            group_id, text, attachment
-        )
+        print("GROUP_IDENTT", group_id)
+        await connect_message_to_group(group_id, from_id, res)
     return "ВСЕ", tuple(result), "ВСЕ"  # type: ignore[return-value]
 
 
@@ -106,31 +102,29 @@ async def broadcast(
 ) -> tuple[tuple[int, tuple[bool]]] | None:
     try:
         admin = await get_admin_by_id(int(from_id))
-        if not admin:
+        if not admin or admin.is_archived:
             return None
 
         coroutines: list[Coroutine] = []
-
-        message = await add_message(text, attachment, from_id)
 
         processed_courses = await proc_course(courses)
         if not processed_courses and courses != "всем":
             logger.error("Courses is not valid")
             return None
 
+        message: GroupMessage = await add_message(text, attachment, from_id)
+
         if admin.is_superuser:
             # Суперпользователь
             if courses == "всем":
-                coroutines.append(
-                    all_groups_broadcast(text, attachment)
-                )
+                coroutines.append(all_groups_broadcast(text, attachment, message))
             else:
                 for course, faculty_id in await make_pairs(
                     processed_courses, faculties
                 ):
                     coroutines.append(
                         course_broadcast(
-                            int(course), message, text, attachment, faculty_id
+                            int(course), from_id, text, attachment, faculty_id
                         )
                     )
         else:
@@ -139,7 +133,7 @@ async def broadcast(
                 coroutines.append(
                     course_broadcast(
                         int(course),
-                        message,
+                        from_id,
                         text,
                         attachment,
                         admin.faculty_id,

@@ -1,5 +1,5 @@
 from vkbottle.bot import BotLabeler
-from vkbottle.user import Message
+from vkbottle.user import Message as VKMessage
 from vkbottle_types.objects import MessagesSendUserIdsResponseItem
 
 import settings
@@ -11,7 +11,7 @@ common_labeler.vbml_ignore_case = True
 
 
 @common_labeler.message(text="Помощь")
-async def user_help(message: Message) -> MessagesSendUserIdsResponseItem:
+async def user_help(message: VKMessage) -> MessagesSendUserIdsResponseItem:
     all_admins = await get_all_admins()
     if not all_admins:
         return
@@ -24,7 +24,7 @@ async def user_help(message: Message) -> MessagesSendUserIdsResponseItem:
 
 
 @common_labeler.message(text="Список факультетов")
-async def faculty_list(message: Message) -> MessagesSendUserIdsResponseItem:
+async def faculty_list(message: VKMessage) -> MessagesSendUserIdsResponseItem:
     all_superusers = await get_all_superusers()
     if not all_superusers:
         return

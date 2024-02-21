@@ -2,6 +2,7 @@ from typing import AsyncGenerator
 
 import pytest
 from sqlalchemy.engine import Connection
+
 from app.db.admins import add_admin
 from app.db.common import Base, engine
 from app.db.faculties import add_faculty

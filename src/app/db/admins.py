@@ -2,7 +2,7 @@ from typing import Iterable
 
 from sqlalchemy import Boolean, Column, ForeignKey, Integer
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.expression import delete, insert, select
+from sqlalchemy.sql.expression import update, insert, select
 
 from app.db.common import Base, db_connect
 
@@ -12,6 +12,7 @@ class Admin(Base):  # type: ignore[valid-type,misc]
 
     id = Column(Integer, primary_key=True)
     is_superuser = Column(Boolean, nullable=False)
+    is_archived = Column(Boolean, nullable=False)
     faculty_id = Column(Integer, ForeignKey("faculty.id"), nullable=True)
 
 
@@ -20,6 +21,7 @@ async def add_admin(
     admin_id: int,
     is_superuser: bool,
     faculty_id: int,
+    is_archived: bool,
     *,
     session: AsyncSession
 ) -> None:
@@ -30,6 +32,7 @@ async def add_admin(
                 "id": admin_id,
                 "is_superuser": is_superuser,
                 "faculty_id": faculty_id,
+                "is_archived": is_archived,
             }
         ],
     )
@@ -53,8 +56,8 @@ async def get_all_superusers(
 
 
 @db_connect
-async def delete_admin(admin_id: int, *, session: AsyncSession) -> None:
-    statement = delete(Admin).where(Admin.id == admin_id)
+async def archive_admin(admin_id: int, *, session: AsyncSession) -> None:
+    statement = update(Admin).where(Admin.id == admin_id).values(is_archived=True)
     await session.execute(statement)
     await session.commit()
 
@@ -68,3 +71,12 @@ async def get_admin_by_id(
     )
     admin = result.scalar_one_or_none()
     return admin  # type: ignore
+
+
+@db_connect
+async def restore_admin(
+    admin_id: int, *, session: AsyncSession
+) -> None:
+    statement = update(Admin).where(Admin.id == admin_id).values(is_archived=False)
+    await session.execute(statement)
+    await session.commit()

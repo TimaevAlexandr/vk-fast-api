@@ -91,4 +91,4 @@ FacultiesMessage = "\n\n".join(faculties)
 FORBIDDEN = "У вас нет прав для использования данной команды!"
 
 
-ADMIN_DELETED_SUCCESSFULLY = "Администратор @id{admin_id} удалён!\n\n"
+ADMIN_DELETED_SUCCESSFULLY = "Администратор @id{admin_id} перенесен в архив!\n\n"
