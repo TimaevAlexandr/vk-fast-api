@@ -1,5 +1,5 @@
 from vkbottle.bot import BotLabeler
-from vkbottle.user import Message
+from vkbottle.user import Message as VKMessage
 from vkbottle_types.objects import MessagesSendUserIdsResponseItem
 
 import settings
@@ -10,7 +10,7 @@ common_labeler.vbml_ignore_case = True
 
 
 @common_labeler.message(text="Помощь")
-async def user_help(message: Message) -> MessagesSendUserIdsResponseItem:
+async def user_help(message: VKMessage) -> MessagesSendUserIdsResponseItem:
     if message.from_id not in settings.ADMINS:
         return await message.answer(messages.FORBIDDEN)
 

@@ -1,7 +1,7 @@
 import re
 
 from vkbottle.bot import BotLabeler
-from vkbottle.user import Message
+from vkbottle.user import Message as VKMessage
 
 from app.bot import messages
 from app.db import (
@@ -19,7 +19,7 @@ regex = r"[Сс]татистика(?: (\d))?"
 
 
 @admin_labeler.message(text="Изменить курс <course>")
-async def change_course(message: Message, course: str) -> None:
+async def change_course(message: VKMessage, course: str) -> None:
     if not await handle_course(message, course, check=True):
         return
 
@@ -38,7 +38,7 @@ async def change_course(message: Message, course: str) -> None:
 
 
 @admin_labeler.message(text="Добавить <course>")
-async def add(message: Message, course: str) -> None:
+async def add(message: VKMessage, course: str) -> None:
     if not await handle_course(message, course):
         return
 
@@ -53,7 +53,7 @@ async def add(message: Message, course: str) -> None:
     await message.answer(messages.WELCOME % {"course": course})
 
 
-def parse_text(message: Message) -> str | None:
+def parse_text(message: VKMessage) -> str | None:
     res = re.match(regex, message.text)
     if not res:
         raise ValueError("Wrong regex text")
@@ -62,7 +62,7 @@ def parse_text(message: Message) -> str | None:
 
 
 @admin_labeler.message(regex=regex)
-async def statistics(message: Message) -> None:
+async def statistics(message: VKMessage) -> None:
     course = parse_text(message)
     if course is not None and not await handle_course(message, course):
         return

@@ -1,4 +1,4 @@
-from vkbottle.user import Message
+from vkbottle.user import Message as VKMessage
 
 import settings
 from app.db import get_groups_ids
@@ -15,7 +15,7 @@ def process_course(course: str | int) -> int:
 
 
 async def handle_course(
-    message: Message, course: str | int, check: bool = False
+    message: VKMessage, course: str | int, check: bool = False
 ) -> bool:
     _course = process_course(course)
 
@@ -33,7 +33,7 @@ async def handle_course(
     return True
 
 
-def get_group_id(message: Message) -> int:
+def get_group_id(message: VKMessage) -> int:
     return int(message.peer_id) - settings.GROUP_ID_COEFFICIENT
 
 
