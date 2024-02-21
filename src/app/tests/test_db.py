@@ -23,7 +23,7 @@ async def test_add_group(init_db):
     group_id = 1
     course = 2021
     faculty_id = 1
-    await add_group(group_id, course, faculty_id)
+    await add_group(group_id, course, faculty_id, False)
     async with engine.connect() as conn:
         result_message = (
             await conn.execute(
@@ -40,7 +40,7 @@ async def test_ids_by_course(init_db):
     group_id = 2
     course = 2022
     faculty_id = 2
-    await add_group(group_id, course, faculty_id)
+    await add_group(group_id, course, faculty_id, False)
     assert [group_id] == await get_group_ids_by_course(course)
 
 
@@ -48,7 +48,8 @@ async def test_ids_by_course(init_db):
 async def test_get_course_by_group_id(init_db):
     group_id = 2
     course = 2022
-    await add_group(group_id, course)
+    faculty_id = 1
+    await add_group(group_id, course,faculty_id, False)
     assert course == await get_course_by_group_id(group_id)
     assert await get_course_by_group_id(3456) is None
 

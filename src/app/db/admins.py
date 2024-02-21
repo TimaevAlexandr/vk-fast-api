@@ -41,18 +41,20 @@ async def add_admin(
 
 @db_connect
 async def get_all_admins(*, session: AsyncSession) -> Iterable[Admin] | None:
-    statement = select(Admin)
+    statement = select(Admin).where(Admin.is_archived == False) # only not archived admins
     result = await session.execute(statement)
     admins = result.scalars().all()
-    return admins  # type: ignore
+    return admins # type: ignore
 
 
 @db_connect
 async def get_all_superusers(
     *, session: AsyncSession
 ) -> Iterable[Admin] | None:
-    superusers = await session.execute(select(Admin).where(Admin.is_superuser))
-    return superusers.all()  # type: ignore
+    statement = select(Admin).where((Admin.is_superuser == True) & (Admin.is_archived == False))
+    result = await session.execute(statement)
+    superusers = result.scalars().all()
+    return superusers  # type: ignore
 
 
 @db_connect

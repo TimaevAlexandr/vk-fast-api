@@ -1,16 +1,18 @@
 import re
 
 from vkbottle.bot import BotLabeler
-from vkbottle.user import VKMessage as VKMessage
+from vkbottle.user import Message as VKMessage
 
+import settings
 from app.bot import messages
 from app.db import count_messages
-from app.db.admins import add_admin, delete_admin, Admin, restore_admin
+from app.db.admins import add_admin, archive_admin, Admin, get_admin_by_id, get_all_superusers, restore_admin
 from app.db.groups import (
     add_group,
     change_group_course,
     get_course_by_group_id,
     group_is_added,
+    is_group_of_admin,
 )
 from app.utils import (
     get_group_id,
@@ -18,7 +20,6 @@ from app.utils import (
     handle_course,
     handle_faculty,
     get_group_id,
-    parse_add_regex,
 )
 
 admin_labeler = BotLabeler()
@@ -34,8 +35,6 @@ def parse_statistics_text(message: VKMessage) -> str | None:
 
 
 regex = r"[Сс]татистика(?: (\d))?"
-
-
 @admin_labeler.message(regex=regex)
 async def statistics(message: VKMessage) -> None:
     course = parse_statistics_text(message)
@@ -74,23 +73,19 @@ async def change_course(message: VKMessage, course: str) -> None:
     await message.answer(messages.EDITED_SUCCESSFULLY % {"course": course})
 
 
-add_regex = r"^Добавить (\S+)(?:\s*([^\[\]]+))?$"
-@admin_labeler.message(regex=add_regex)
-async def add(message: VKMessage) -> None:
-    course, faculty = parse_add_regex(message)
-
+@admin_labeler.message(text="Добавить <course> <faculty>")
+async def add(message: VKMessage, course: str, faculty: str) -> None:
+    is_admin = False
     _course = await handle_course(message, course)  # type: ignore
     if not _course:
         return
 
     group_id = get_group_id(message)
+
     if await group_is_added(group_id):
         await message.answer("Ваша беседа уже есть в списке")
         return
 
-
-    if err:
-        return
 
     if faculty:
         faculty_id, err, is_superuser = await handle_faculty(
@@ -99,13 +94,19 @@ async def add(message: VKMessage) -> None:
         if err:
             return
     else:
-        # беседа админов
+        # беседа супер админов
         faculty_id = None
 
-    await add_group(group_id, int(_course), faculty_id)
+    if _course == -1:
+        _course = None
+        is_admin = True
+    
+    
+    await add_group(group_id, int(_course), faculty_id, is_admin)
 
-    await message.answer(messages.ADDED_SUCCESSFULLY % {"course": _course})
-    await message.answer(messages.WELCOME % {"course": _course})
+    if _course:
+        await message.answer(messages.ADDED_SUCCESSFULLY % {"course": _course})
+        await message.answer(messages.WELCOME % {"course": _course})
 
 
 # функционал для суперадмина(бд) + того кто прописан в settings.py
@@ -115,6 +116,10 @@ async def add(message: VKMessage) -> None:
 async def add_faculty_admin(
     message: VKMessage, admin_id: str, faculty: str
 ) -> None:
+    group_id = get_group_id(message)
+    if not is_group_of_admin(group_id):
+        return
+
     admin_id_validated = await handle_admin_id(
         message, admin_id, need_in_table=False
     )
@@ -149,13 +154,18 @@ async def add_faculty_admin(
 
 @admin_labeler.message(text="Удалить администратора <admin_id>")
 async def delete_faculty_admin(message: VKMessage, admin_id: str) -> None:
+    
+    group_id = get_group_id(message)
+    if not is_group_of_admin(group_id):
+        return
+
     admin_id_validated = await handle_admin_id(
         message, admin_id, need_in_table=True
     )
     if not isinstance(admin_id_validated, int):
         return
 
-    await delete_admin(admin_id_validated) #переносим в архив
+    await archive_admin(admin_id_validated) # переносим в архив
 
     await message.answer(
         messages.ADMIN_DELETED_SUCCESSFULLY.format(admin_id=admin_id_validated)

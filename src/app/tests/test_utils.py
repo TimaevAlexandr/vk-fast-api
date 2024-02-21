@@ -213,8 +213,7 @@ async def test_make_pairs(mocker, courses, faculties, expected):
 # def test_extract_id(mocker):
 #     pass
 
-# def test_parse_add_regex(mocker):
-#     pass
+
 
 
 async def test_get_group_id(mocker):

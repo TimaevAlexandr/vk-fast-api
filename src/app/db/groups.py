@@ -15,6 +15,7 @@ class StudentGroup(Base):  # type: ignore[valid-type,misc]
     id = Column(Integer, primary_key=True)
     course = Column(Integer, nullable=False)
     faculty_id = Column(Integer, ForeignKey("faculty.id"), nullable=True)
+    is_admin = Column(Boolean, nullable=False)
     faculty = relationship("Faculty")
     messages = relationship("GroupMessage", back_populates="group")
 
@@ -83,10 +84,10 @@ async def delete_group(group_id: int, *, session: AsyncSession) -> None:
 async def get_group_ids_by_course(
     course: int, *, session: AsyncSession
 ) -> Iterable[int]:
-    group_ids = await session.execute(
+    groups = await session.execute(
         select(StudentGroup).where(StudentGroup.course == course)
     )
-    return [group_id[0].id for group_id in group_ids]
+    return [group[0].id for group in groups if not group.is_admin]
 
 
 @db_connect
@@ -103,22 +104,22 @@ async def get_course_by_group_id(
 async def get_group_ids_by_faculty_id(
     faculty_id: int, *, session: AsyncSession
 ) -> Iterable[int]:
-    group_ids = await session.execute(
+    groups = await session.execute(
         select(StudentGroup).where(StudentGroup.faculty_id == faculty_id)
     )
-    return [group_id[0].id for group_id in group_ids]
+    return [group[0].id for group in groups if not group.is_admin]
 
 
 
 @db_connect
 async def get_groups_ids(*, session: AsyncSession) -> Iterable[int]:
     groups = (await session.execute(select(StudentGroup))).all()
-    return [group[0].id for group in groups if group[0].course != -1]
+    return [group[0].id for group in groups if not group[0].is_admin]
 
 
 @db_connect
 async def add_group(
-    group_id: int, course: int, faculty_id: int, *, session: AsyncSession
+    group_id: int, course: int, faculty_id: int, is_admin: bool, *, session: AsyncSession
 ) -> None:
     await session.execute(
         insert(StudentGroup),  # type: ignore
@@ -127,6 +128,7 @@ async def add_group(
                 "id": group_id,
                 "course": course,
                 "faculty_id": faculty_id,
+                "is_admin": is_admin,
             }
         ],
     )
@@ -149,7 +151,7 @@ async def change_group_course(
 async def get_group_ids_by_course_faculty_id(
     course: int, faculty_id: int, *, session: AsyncSession
 ) -> list[int]:
-    group_ids = await session.execute(
+    groups = await session.execute(
         select(StudentGroup.id).where(
             and_(
                 StudentGroup.course == course,
@@ -157,8 +159,15 @@ async def get_group_ids_by_course_faculty_id(
             )
         )
     )
-    return [group_id[0] for group_id in group_ids]
+    return [group[0] for group in groups if not group.is_admin]
 
 @db_connect
 async def group_is_added(group_id: int, *, session: AsyncSession) -> bool:
     return await session.scalar(select(exists().where(StudentGroup.id == group_id)))
+
+@db_connect
+async def is_group_of_admin(group_id: int, *, session: AsyncSession) -> bool:
+    group = await session.get(StudentGroup, group_id)
+    if group is None:
+        return False
+    return group.is_admin

@@ -57,20 +57,6 @@ async def make_pairs(courses: set, faculties: str | None):
 
 
 
-def parse_add_regex(
-    message: VKMessage,
-) -> tuple[str | None, str | None] | tuple[None, None]:
-    add_pattern = re.compile(r"^Добавить (\S+)(?:\s*([^\[\]]+))?$")
-    match = add_pattern.match(message.text)
-
-    if match:
-        course = match.group(1)
-        faculty = match.group(2)
-        return course, faculty
-    else:
-        return None, None
-
-
 async def proc_course(courses):
     processed_courses = set()
     for cours in set(courses):
@@ -124,9 +110,9 @@ async def handle_faculty(
 async def handle_admin_id(
     message: VKMessage, admin_id: str, need_in_table: bool
 ) -> int | bool | Admin:
-    super_admins = await get_all_superusers() + ADMINS
+    sender_admin = await get_admin_by_id(message.from_id)
 
-    if message.from_id not in super_admins:
+    if not sender_admin.is_superuser or sender_admin.is_archived:
         await message.answer("Не достаточно прав")
         return False
 

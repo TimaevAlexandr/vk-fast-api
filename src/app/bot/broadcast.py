@@ -2,7 +2,7 @@ import logging
 import re
 
 from vkbottle.bot import BotLabeler
-from vkbottle.user import VKMessage as VKMessage
+from vkbottle.user import Message as VKMessage
 
 import settings
 from app.broadcast import broadcast

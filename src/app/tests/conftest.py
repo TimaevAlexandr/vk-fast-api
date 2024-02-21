@@ -31,9 +31,9 @@ async def init_db(connection: Connection):
 @pytest.mark.asyncio
 @pytest.fixture()
 async def groups(init_db):
-    await add_group(1, 1, 1)
-    await add_group(2, 2, 2)
-    await add_group(3, 3, 3)
+    await add_group(1, 1, 1, False)
+    await add_group(2, 2, 2, False)
+    await add_group(3, 3, 3, False)
     yield
 
 
