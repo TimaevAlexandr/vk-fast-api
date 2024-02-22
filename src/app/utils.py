@@ -128,7 +128,7 @@ async def handle_admin_id(
         not need_in_table
     ):  # если необходимо условие что такой не должен быть в таблице
         # для добавления админа
-        admin = get_admin_by_id(admin_id_int)
+        admin = await get_admin_by_id(admin_id_int)
 
         if admin and not admin.is_archived:
             await message.answer("Такой админ уже существует!")

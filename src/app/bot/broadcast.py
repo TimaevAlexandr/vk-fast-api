@@ -1,12 +1,14 @@
 import logging
 import re
+from app.db.groups import get_group_faculty_id, is_group_of_admin
+from app.utils import get_group_id
 
 from vkbottle.bot import BotLabeler
 from vkbottle.user import Message as VKMessage
 
 import settings
 from app.broadcast import broadcast
-from app.db.admins import get_all_admins
+from app.db.admins import get_admin_by_id, get_all_admins
 
 logger = logging.getLogger(__name__)
 
@@ -77,16 +79,19 @@ def parse_text(message: VKMessage) -> tuple[str, str | None, str]:
 @broadcast_labeler.message(regex=regex)
 @broadcast_labeler.message(regex=regex_all)
 async def sharing_text(message: VKMessage) -> None:
-    all_admins = [
-        admin.id for admin in await get_all_admins()
-    ] + settings.ADMINS
-
-    # тот, кто в settings
-    # по умолчанию считается  суперадмин
-
-    if message.from_id not in all_admins:
+    group_id = get_group_id(message)
+    if not is_group_of_admin(group_id):
         return
 
+    group_faculty_id = await get_group_faculty_id(group_id)
+    sender = await get_admin_by_id(message.from_id)
+
+    if not sender:
+        return
+
+    if sender.faculty_id != group_faculty_id:
+        await message.answer("Это беседа для админов другого факультета")
+        return
     courses, faculties, text = parse_text(message)
 
     _text = get_text(message, text)

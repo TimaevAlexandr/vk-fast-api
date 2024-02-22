@@ -6,7 +6,7 @@ from vkbottle.user import Message as VKMessage
 import settings
 from app.bot import messages
 from app.db import count_messages
-from app.db.admins import add_admin, archive_admin, Admin, get_admin_by_id, get_all_superusers, restore_admin
+from app.db.admins import add_admin, archive_admin, Admin, get_admin_by_id, restore_admin
 from app.db.groups import (
     add_group,
     change_group_course,
@@ -56,6 +56,9 @@ async def statistics(message: VKMessage) -> None:
 
 @admin_labeler.message(text="Изменить курс <course>")
 async def change_course(message: VKMessage, course: str) -> None:
+    group_id = get_group_id(message)
+    if is_group_of_admin(group_id):
+        return
     if not await handle_course(message, course, check=True):
         return
 
@@ -75,38 +78,40 @@ async def change_course(message: VKMessage, course: str) -> None:
 
 @admin_labeler.message(text="Добавить <course> <faculty>")
 async def add(message: VKMessage, course: str, faculty: str) -> None:
-    is_admin = False
-    _course = await handle_course(message, course)  # type: ignore
-    if not _course:
-        return
-
-    group_id = get_group_id(message)
-
-    if await group_is_added(group_id):
-        await message.answer("Ваша беседа уже есть в списке")
-        return
-
-
-    if faculty:
-        faculty_id, err, is_superuser = await handle_faculty(
-            message, f"Факультет {faculty} не найден", faculty
-        )
-        if err:
+    try:
+        sender = await get_admin_by_id(message.from_id)
+        if not sender or sender.is_archived:
             return
-    else:
-        # беседа супер админов
-        faculty_id = None
 
-    if _course == -1:
-        _course = None
-        is_admin = True
-    
-    
-    await add_group(group_id, int(_course), faculty_id, is_admin)
+        group_id = get_group_id(message)
+        print(group_id)
+        if await group_is_added(group_id):
+            await message.answer("Ваша беседа уже есть в списке")
+            return
 
-    if _course:
-        await message.answer(messages.ADDED_SUCCESSFULLY % {"course": _course})
-        await message.answer(messages.WELCOME % {"course": _course})
+        is_admin = False
+        _course = await handle_course(message, course)  # type: ignore
+        if not _course:
+            return
+
+        if _course == -1:
+            _course = None
+            is_admin = True
+
+        if faculty:
+            faculty_id, err, is_superuser = await handle_faculty(
+                message, f"Факультет {faculty} не найден", faculty
+            )
+            if err:
+                return
+
+        await add_group(group_id, int(_course), faculty_id, is_admin)
+
+        if _course != -1:
+            await message.answer(messages.ADDED_SUCCESSFULLY % {"course": _course})
+            await message.answer(messages.WELCOME % {"course": _course})
+    except:
+        return
 
 
 # функционал для суперадмина(бд) + того кто прописан в settings.py
@@ -120,7 +125,7 @@ async def add_faculty_admin(
     if not is_group_of_admin(group_id):
         return
 
-    admin_id_validated = await handle_admin_id(
+    admin_id_validated = await handle_admin_id( # only for superusers
         message, admin_id, need_in_table=False
     )
     if not admin_id_validated:
@@ -154,7 +159,7 @@ async def add_faculty_admin(
 
 @admin_labeler.message(text="Удалить администратора <admin_id>")
 async def delete_faculty_admin(message: VKMessage, admin_id: str) -> None:
-    
+
     group_id = get_group_id(message)
     if not is_group_of_admin(group_id):
         return

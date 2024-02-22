@@ -13,7 +13,7 @@ class StudentGroup(Base):  # type: ignore[valid-type,misc]
     __tablename__ = "student_groups"
 
     id = Column(Integer, primary_key=True)
-    course = Column(Integer, nullable=False)
+    course = Column(Integer, nullable=True)
     faculty_id = Column(Integer, ForeignKey("faculty.id"), nullable=True)
     is_admin = Column(Boolean, nullable=False)
     faculty = relationship("Faculty")
@@ -119,7 +119,7 @@ async def get_groups_ids(*, session: AsyncSession) -> Iterable[int]:
 
 @db_connect
 async def add_group(
-    group_id: int, course: int, faculty_id: int, is_admin: bool, *, session: AsyncSession
+    group_id: int, course: int | None, faculty_id: int | None, is_admin: bool, *, session: AsyncSession
 ) -> None:
     await session.execute(
         insert(StudentGroup),  # type: ignore
@@ -171,3 +171,15 @@ async def is_group_of_admin(group_id: int, *, session: AsyncSession) -> bool:
     if group is None:
         return False
     return group.is_admin
+
+@db_connect
+async def get_group_faculty_id(
+    group_id: int, *, session: AsyncSession
+) -> int | None:
+    group = await session.execute(
+        select(StudentGroup).where(StudentGroup.id == group_id)
+    )
+    if group:
+        return group.faculty_id
+    else:
+        return None
